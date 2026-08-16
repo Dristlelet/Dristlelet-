@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DRISTLELET — Streetwear</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="nav">
+    <a class="brand" href="#">DRISTLELET</a>
+    <nav>
+      <a href="#shop">Shop</a>
+      <a href="#about">About</a>
+      <button id="cartButton">Bag <span id="cartCount">0</span></button>
+    </nav>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="hero-copy">
+        <p class="eyebrow">NEW COLLECTION</p>
+        <h1>BUILT<br><span>DIFFERENT.</span></h1>
+        <p>Dark streetwear. Electric energy. Designed to stand out.</p>
+        <a class="button" href="#shop">SHOP THE DROP</a>
+      </div>
+      <div class="hero-mark">D</div>
+    </section>
+
+    <section id="shop" class="section">
+      <div class="section-heading">
+        <p class="eyebrow">THE DROP</p>
+        <h2>Featured pieces</h2>
+      </div>
+
+      <div class="products">
+        <article class="product">
+          <div class="product-art blue">DRISTLELET</div>
+          <h3>Blue Voltage Hoodie</h3>
+          <p>Black / Electric Blue</p>
+          <strong>£55</strong>
+          <button class="add" data-product="Blue Voltage Hoodie">Add to bag</button>
+        </article>
+
+        <article class="product">
+          <div class="product-art purple">DRISTLELET</div>
+          <h3>Pink × Purple Hoodie</h3>
+          <p>Black / Neon Pink / Purple</p>
+          <strong>£55</strong>
+          <button class="add" data-product="Pink × Purple Hoodie">Add to bag</button>
+        </article>
+
+        <article class="product">
+          <div class="product-art ice">ICE VOLT</div>
+          <h3>Ice Volt Hoodie</h3>
+          <p>Black / Ice Blue</p>
+          <strong>£55</strong>
+          <button class="add" data-product="Ice Volt Hoodie">Add to bag</button>
+        </article>
+      </div>
+    </section>
+
+    <section id="about" class="about">
+      <p class="eyebrow">THE BRAND</p>
+      <h2>DRISTLELET ISN'T JUST A NAME.<br>IT'S A STATEMENT.</h2>
+      <p>Original graphics, oversized silhouettes and a futuristic streetwear identity.</p>
+    </section>
+  </main>
+
+  <footer>
+    <span>© 2026 DRISTLELET</span>
+    <span>BUILT DIFFERENT.</span>
+  </footer>
+
+  <div id="toast" class="toast">Added to bag.</div>
+  <script src="script.js"></script>
+<script src="catalogue.js"></script>
+
+<section id="catalogueEditor" style="max-width:1000px;margin:50px auto;padding:24px;border-radius:18px;background:rgba(255,255,255,.06)">
+  <h2>Catalogue Manager</h2>
+  <p>Add or edit products here. Changes are saved in this browser.</p>
+  <div id="catalogueManager"></div>
+  <button id="addProduct" type="button">+ Add product</button>
+  <button id="saveCatalogue" type="button">Save catalogue</button>
+</section>
+
+
+<script>
+(function () {
+  if (!window.catalogue) return;
+
+  const saved = localStorage.getItem("dristleletCatalogue");
+  let products = saved ? JSON.parse(saved) : window.catalogue.slice();
+
+  const manager = document.getElementById("catalogueManager");
+  const add = document.getElementById("addProduct");
+  const save = document.getElementById("saveCatalogue");
+
+  function render() {
+    manager.innerHTML = "";
+    products.forEach((p, i) => {
+      const row = document.createElement("div");
+      row.style.cssText = "display:grid;gap:8px;margin:15px 0;padding:15px;border:1px solid rgba(255,255,255,.15);border-radius:12px;";
+      row.innerHTML = `
+        <input value="${p.name || ""}" placeholder="Product name">
+        <input value="${p.price || ""}" placeholder="Price">
+        <input value="${p.image || ""}" placeholder="Image path">
+        <textarea placeholder="Description">${p.description || ""}</textarea>
+        <button type="button" data-remove="${i}">Remove</button>
+      `;
+      const fields = row.querySelectorAll("input, textarea");
+      fields[0].oninput = e => p.name = e.target.value;
+      fields[1].oninput = e => p.price = e.target.value;
+      fields[2].oninput = e => p.image = e.target.value;
+      fields[3].oninput = e => p.description = e.target.value;
+      row.querySelector("[data-remove]").onclick = () => {
+        products.splice(i, 1);
+        render();
+      };
+      manager.appendChild(row);
+    });
+  }
+
+  add.onclick = () => {
+    products.push({name:"New Product", price:"£0", image:"", description:""});
+    render();
+  };
+
+  save.onclick = () => {
+    localStorage.setItem("dristleletCatalogue", JSON.stringify(products));
+    alert("Catalogue saved on this browser.");
+  };
+
+  render();
+})();
+</script>
+
+</body>
+</html>
