@@ -586,8 +586,7 @@ console.log("DRISTLELET SCRIPT LOADED");
   /* =========================================================
      CHECKOUT
   ========================================================= */
-
-  function openCheckout() {
+function openCheckout() {
 
     if (cart.length === 0) {
 
@@ -1029,4 +1028,199 @@ console.log("DRISTLELET SCRIPT LOADED");
             checkout
               .querySelector("#customerPhone")
               .value
-              .tr
+              .trim();
+
+          const postcode =
+            checkout
+              .querySelector("#customerPostcode")
+              .value
+              .trim();
+
+          if (
+            !name ||
+            !email ||
+            !phone ||
+            !postcode
+          ) {
+
+            showToast(
+              "Please complete your details."
+            );
+
+            return;
+          }
+
+          showToast(
+            "Details saved. Payment is coming soon."
+          );
+
+          checkout
+            .querySelector(
+              "#continueToPayment"
+            )
+            .textContent =
+              "PAYMENT COMING SOON";
+        }
+      );
+  }
+
+  /* =========================================================
+     RENDER CATALOGUE
+  ========================================================= */
+
+  function renderCatalogue() {
+
+    if (!items.length) {
+
+      productsEl.innerHTML = `
+        <p style="color:#a4a4ad;">
+          No products found. Check catalogue.js.
+        </p>
+      `;
+
+      return;
+    }
+
+    productsEl.innerHTML =
+      items.map(
+        (item, index) => `
+
+        <article class="product reveal-product">
+
+          <div
+            class="product-image-wrap product-preview"
+            data-index="${index}"
+            role="button"
+            tabindex="0"
+            aria-label="Preview ${item.name}"
+          >
+
+            <img
+              src="${item.image}"
+              alt="${item.name}"
+              class="product-image"
+              loading="lazy"
+            >
+
+          </div>
+
+          <div class="product-info">
+
+            <h3>
+              ${item.name}
+            </h3>
+
+            <p>
+              ${item.description}
+            </p>
+
+            <strong>
+              ${item.price}
+            </strong>
+
+            <button
+              class="add"
+              type="button"
+              data-index="${index}"
+            >
+              ADD TO BAG
+            </button>
+
+          </div>
+
+        </article>
+
+      `
+      ).join("");
+
+    /* ADD TO BAG */
+
+    productsEl
+      .querySelectorAll(".add")
+      .forEach(button => {
+
+        button.addEventListener(
+          "click",
+          () => {
+
+            addToCart(
+              items[
+                Number(
+                  button.dataset.index
+                )
+              ]
+            );
+
+          }
+        );
+
+      });
+
+    /* PRODUCT PREVIEW */
+
+    productsEl
+      .querySelectorAll(
+        ".product-preview"
+      )
+      .forEach(preview => {
+
+        const open = () => {
+
+          createPreview(
+            items[
+              Number(
+                preview.dataset.index
+              )
+            ]
+          );
+
+        };
+
+        preview.addEventListener(
+          "click",
+          open
+        );
+
+        preview.addEventListener(
+          "keydown",
+          event => {
+
+            if (
+              event.key === "Enter" ||
+              event.key === " "
+            ) {
+
+              event.preventDefault();
+              open();
+
+            }
+
+          }
+        );
+
+      });
+  }
+
+  /* =========================================================
+     BAG BUTTON
+  ========================================================= */
+
+  if (cartButton) {
+
+    cartButton.addEventListener(
+      "click",
+      openCart
+    );
+
+  }
+
+  /* =========================================================
+     START
+  ========================================================= */
+
+  updateCount();
+
+  renderCatalogue();
+
+})();
+                                              
