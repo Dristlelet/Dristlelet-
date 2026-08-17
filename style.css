@@ -306,3 +306,255 @@ button:active, .add:active {
   filter: brightness(1.08);
 }
 .product-image-wrap{position:relative}.product-image.image-missing{display:none}.image-fallback{position:absolute;inset:0;display:none;place-items:center;color:#777782;letter-spacing:.2em;font-size:.7rem;background:radial-gradient(circle at center,#15151e,#08080c 65%)}.image-fallback.show{display:grid}
+/* =========================================
+   DRISTLELET — MOTION SYSTEM
+   ========================================= */
+
+/* Smooth scrolling */
+html {
+  scroll-behavior: smooth;
+}
+
+/* HERO ENTRANCE */
+.hero-copy {
+  animation: heroReveal 1.2s ease-out both;
+}
+
+.hero-copy .eyebrow {
+  animation: fadeUp 0.8s ease-out 0.15s both;
+}
+
+.hero-copy h1 {
+  animation: titleReveal 1s cubic-bezier(.16,1,.3,1) 0.3s both;
+}
+
+.hero-copy > p {
+  animation: fadeUp 0.9s ease-out 0.55s both;
+}
+
+.hero-copy .button {
+  animation: fadeUp 0.9s ease-out 0.75s both;
+}
+
+/* Floating Dristlelet mark */
+.hero-mark {
+  animation:
+    markFloat 5s ease-in-out infinite,
+    markGlow 3s ease-in-out infinite alternate;
+}
+
+/* Moving atmospheric glow */
+.hero {
+  position: relative;
+  overflow: hidden;
+}
+
+.hero::before {
+  content: "";
+  position: absolute;
+  width: 420px;
+  height: 420px;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    rgba(23,119,255,.22),
+    rgba(157,53,255,.12),
+    transparent 70%
+  );
+  top: 35%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  animation: energyMove 8s ease-in-out infinite alternate;
+  pointer-events: none;
+}
+
+/* Make hero content stay above the glow */
+.hero > * {
+  position: relative;
+  z-index: 1;
+}
+
+
+/* =========================================
+   PRODUCT CARDS
+   ========================================= */
+
+.product {
+  animation: productReveal 0.9s ease-out both;
+  transition:
+    transform .4s cubic-bezier(.16,1,.3,1),
+    border-color .4s ease,
+    box-shadow .4s ease;
+}
+
+.product:hover {
+  transform: translateY(-10px);
+  box-shadow:
+    0 20px 60px rgba(23,119,255,.12),
+    0 0 30px rgba(157,53,255,.08);
+}
+
+/* Product artwork gently moves */
+.product-art {
+  transition: transform .6s cubic-bezier(.16,1,.3,1);
+}
+
+.product:hover .product-art {
+  transform: scale(1.035);
+}
+
+
+/* =========================================
+   BUTTON MOTION
+   ========================================= */
+
+.button,
+.add {
+  position: relative;
+  overflow: hidden;
+  transition:
+    transform .25s ease,
+    box-shadow .25s ease;
+}
+
+.button::before,
+.add::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -120%;
+  width: 80%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255,255,255,.35),
+    transparent
+  );
+  transform: skewX(-20deg);
+  transition: left .7s ease;
+}
+
+.button:hover::before,
+.add:hover::before {
+  left: 140%;
+}
+
+.button:hover,
+.add:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 30px rgba(23,119,255,.18);
+}
+
+.button:active,
+.add:active {
+  transform: scale(.97);
+}
+
+
+/* =========================================
+   KEYFRAMES
+   ========================================= */
+
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(25px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes heroReveal {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes titleReveal {
+  from {
+    opacity: 0;
+    transform: translateY(35px) scale(.96);
+    filter: blur(8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    filter: blur(0);
+  }
+}
+
+@keyframes markFloat {
+  0%,
+  100% {
+    transform: translateY(0) rotate(0deg);
+  }
+
+  50% {
+    transform: translateY(-18px) rotate(2deg);
+  }
+}
+
+@keyframes markGlow {
+  from {
+    filter:
+      drop-shadow(0 0 5px rgba(23,119,255,.35))
+      drop-shadow(0 0 15px rgba(157,53,255,.15));
+  }
+
+  to {
+    filter:
+      drop-shadow(0 0 15px rgba(23,119,255,.7))
+      drop-shadow(0 0 35px rgba(157,53,255,.45));
+  }
+}
+
+@keyframes energyMove {
+  0% {
+    transform: translate(-50%, -50%) scale(.85);
+  }
+
+  50% {
+    transform: translate(-42%, -55%) scale(1.15);
+  }
+
+  100% {
+    transform: translate(-58%, -45%) scale(.95);
+  }
+}
+
+@keyframes productReveal {
+  from {
+    opacity: 0;
+    transform: translateY(45px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+
+/* =========================================
+   REDUCE MOTION FOR ACCESSIBILITY
+   ========================================= */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: .01ms !important;
+  }
+}
