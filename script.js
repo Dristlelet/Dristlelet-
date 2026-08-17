@@ -1228,3 +1228,8 @@
           const phone =
             checkout
               .querySelector("#customerPhone"
+                             updateCount();
+
+renderCatalogue();
+
+})();
