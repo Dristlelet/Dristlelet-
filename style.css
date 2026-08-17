@@ -1051,3 +1051,255 @@ html {
     padding-top: 35px !important;
   }
 }
+/* =========================================
+   DRISTLELET — PREMIUM PRODUCT CARDS
+   ========================================= */
+
+#shop {
+  position: relative;
+}
+
+.section-heading {
+  position: relative;
+}
+
+.section-heading h2 {
+  letter-spacing: -0.04em;
+}
+
+/* PRODUCT CARD */
+
+.product {
+  position: relative;
+  overflow: hidden;
+
+  padding: 14px !important;
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(20,20,30,.96),
+      rgba(8,8,12,.98)
+    ) !important;
+
+  border: 1px solid rgba(255,255,255,.09) !important;
+
+  box-shadow:
+    0 15px 45px rgba(0,0,0,.35);
+
+  border-radius: 2px;
+
+  transition:
+    transform .45s cubic-bezier(.16,1,.3,1),
+    border-color .35s ease,
+    box-shadow .45s ease;
+}
+
+/* subtle glow */
+
+.product::before {
+  content: "";
+  position: absolute;
+
+  width: 180px;
+  height: 180px;
+
+  top: -90px;
+  right: -90px;
+
+  border-radius: 50%;
+
+  background: rgba(22,119,255,.16);
+
+  filter: blur(45px);
+
+  opacity: 0;
+
+  transition: opacity .5s ease;
+
+  pointer-events: none;
+}
+
+.product:hover::before {
+  opacity: 1;
+}
+
+.product:hover {
+  transform: translateY(-8px) !important;
+
+  border-color: rgba(90,150,255,.35) !important;
+
+  box-shadow:
+    0 25px 70px rgba(0,0,0,.55),
+    0 0 35px rgba(22,119,255,.08);
+}
+
+
+/* =========================================
+   PRODUCT IMAGE
+   ========================================= */
+
+.product-image-wrap {
+  position: relative;
+
+  aspect-ratio: 1 / 1 !important;
+
+  overflow: hidden;
+
+  background: #08080c;
+
+  border: 1px solid rgba(255,255,255,.06) !important;
+}
+
+.product-image {
+  width: 100%;
+  height: 100%;
+
+  object-fit: cover;
+
+  transition:
+    transform .7s cubic-bezier(.16,1,.3,1),
+    filter .5s ease;
+}
+
+.product:hover .product-image {
+  transform: scale(1.06);
+
+  filter:
+    brightness(1.08)
+    contrast(1.03);
+}
+
+
+/* =========================================
+   PRODUCT INFORMATION
+   ========================================= */
+
+.product h3 {
+  margin: 22px 4px 8px !important;
+
+  font-size: 1rem;
+
+  letter-spacing: .02em;
+}
+
+.product p {
+  margin: 0 4px;
+
+  color: #92929d !important;
+
+  font-size: .7rem;
+
+  line-height: 1.7;
+}
+
+.product strong {
+  display: block;
+
+  margin: 18px 4px 14px !important;
+
+  font-size: 1rem;
+
+  letter-spacing: .05em;
+}
+
+
+/* =========================================
+   ADD TO BAG BUTTON
+   ========================================= */
+
+.product .add {
+  margin-top: 4px !important;
+
+  min-height: 50px;
+
+  border: 1px solid rgba(255,255,255,.22) !important;
+
+  background: transparent;
+
+  color: white;
+
+  font-size: .7rem;
+
+  letter-spacing: .08em;
+
+  transition:
+    background .3s ease,
+    color .3s ease,
+    transform .25s ease,
+    box-shadow .3s ease;
+}
+
+.product .add:hover {
+  background: white;
+
+  color: #050507;
+
+  box-shadow:
+    0 10px 35px rgba(255,255,255,.12);
+}
+
+
+/* =========================================
+   MOBILE PRODUCT CARDS
+   ========================================= */
+
+@media (max-width: 800px) {
+
+  .products {
+    gap: 28px !important;
+  }
+
+  .product {
+    padding: 12px !important;
+  }
+
+  .product-image-wrap {
+    aspect-ratio: 1 / 1 !important;
+  }
+
+  .product h3 {
+    margin-top: 18px !important;
+
+    font-size: .95rem;
+  }
+
+  .product p {
+    font-size: .68rem;
+
+    line-height: 1.65;
+  }
+
+  .product strong {
+    margin-top: 15px !important;
+  }
+
+  .product .add {
+    min-height: 52px;
+  }
+}
+
+
+/* =========================================
+   VERY SMALL PHONES
+   ========================================= */
+
+@media (max-width: 420px) {
+
+  .product {
+    padding: 10px !important;
+  }
+
+  .product h3 {
+    font-size: .9rem;
+  }
+
+  .product p {
+    font-size: .65rem;
+  }
+
+  .product .add {
+    min-height: 50px;
+    font-size: .65rem;
+  }
+}
