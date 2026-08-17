@@ -1,49 +1,85 @@
-console.log("DRISTLELET SCRIPT LOADED");
-console.log("CATALOGUE:", window.catalogue);
 (() => {
 
-  /* =========================================
-     DRISTLELET
-     CATALOGUE + CART + CHECKOUT
-  ========================================= */
+  /* =========================================================
+     DRISTLELET — COMPLETE SHOP ENGINE
+     
+     Catalogue
+     Product previews
+     Shopping bag
+     Quantity controls
+     Checkout
+     Customer details
+     Delivery calculation
+     Order summary
+  ========================================================= */
 
-  const productsEl = document.getElementById("products");
-  const cartButton = document.getElementById("cartButton");
-  const countEl = document.getElementById("cartCount");
-  const toast = document.getElementById("toast");
+
+  /* =========================================================
+     PAGE ELEMENTS
+  ========================================================= */
+
+  const productsEl =
+    document.getElementById("products");
+
+  const cartButton =
+    document.getElementById("cartButton");
+
+  const countEl =
+    document.getElementById("cartCount");
+
+  const toast =
+    document.getElementById("toast");
+
 
   if (!productsEl) {
-    console.error("DRISTLELET: #products was not found.");
+
+    console.error(
+      "DRISTLELET: #products was not found."
+    );
+
     return;
+
   }
 
 
-  /* =========================================
+  /* =========================================================
      CATALOGUE
-  ========================================= */
+  ========================================================= */
 
-  const items = Array.isArray(window.catalogue)
-    ? window.catalogue
-    : [];
+  const items =
+    Array.isArray(window.catalogue)
+      ? window.catalogue
+      : [];
+
 
   if (!Array.isArray(window.catalogue)) {
+
     console.error(
       "DRISTLELET: catalogue.js did not load correctly."
     );
+
   }
 
 
-  /* =========================================
-     CART STORAGE
-  ========================================= */
+  /* =========================================================
+     CART
+  ========================================================= */
 
   let cart = [];
 
+
   try {
 
-    cart = JSON.parse(
-      localStorage.getItem("dristleletCartItems") || "[]"
-    );
+    const savedCart =
+      localStorage.getItem(
+        "dristleletCartItems"
+      );
+
+    cart =
+      savedCart
+        ? JSON.parse(savedCart)
+        : [];
+
 
     if (!Array.isArray(cart)) {
       cart = [];
@@ -61,9 +97,9 @@ console.log("CATALOGUE:", window.catalogue);
   }
 
 
-  /* =========================================
+  /* =========================================================
      PRICE HELPER
-  ========================================= */
+  ========================================================= */
 
   function getPrice(price) {
 
@@ -77,9 +113,9 @@ console.log("CATALOGUE:", window.catalogue);
   }
 
 
-  /* =========================================
+  /* =========================================================
      SAVE CART
-  ========================================= */
+  ========================================================= */
 
   function saveCart() {
 
@@ -102,30 +138,40 @@ console.log("CATALOGUE:", window.catalogue);
   }
 
 
-  /* =========================================
+  /* =========================================================
      CART COUNT
-  ========================================= */
+  ========================================================= */
 
   function updateCount() {
 
-    const count = cart.reduce(
-      (total, item) =>
-        total + Number(item.quantity || 0),
-      0
-    );
+    const count =
+      cart.reduce(
+        (total, item) => {
+
+          return total +
+            Number(item.quantity || 0);
+
+        },
+        0
+      );
+
 
     if (countEl) {
-      countEl.textContent = count;
+
+      countEl.textContent =
+        count;
+
     }
+
 
     saveCart();
 
   }
 
 
-  /* =========================================
+  /* =========================================================
      CART TOTAL
-  ========================================= */
+  ========================================================= */
 
   function getTotal() {
 
@@ -143,37 +189,54 @@ console.log("CATALOGUE:", window.catalogue);
   }
 
 
-  /* =========================================
+  /* =========================================================
      TOAST
-  ========================================= */
+  ========================================================= */
 
   function showToast(message) {
 
     if (!toast) return;
 
-    toast.textContent = message;
 
-    toast.classList.remove("hide");
-    toast.classList.add("show");
+    toast.textContent =
+      message;
+
+
+    toast.classList.remove(
+      "hide"
+    );
+
+    toast.classList.add(
+      "show"
+    );
+
 
     setTimeout(() => {
 
-      toast.classList.remove("show");
-      toast.classList.add("hide");
+      toast.classList.remove(
+        "show"
+      );
+
+      toast.classList.add(
+        "hide"
+      );
 
     }, 1800);
 
   }
 
 
-  /* =========================================
-     IMAGE PREVIEW
-  ========================================= */
+  /* =========================================================
+     PRODUCT PREVIEW
+  ========================================================= */
 
   function createPreview(item) {
 
     const oldPreview =
-      document.getElementById("imagePreview");
+      document.getElementById(
+        "imagePreview"
+      );
+
 
     if (oldPreview) {
       oldPreview.remove();
@@ -181,10 +244,16 @@ console.log("CATALOGUE:", window.catalogue);
 
 
     const preview =
-      document.createElement("div");
+      document.createElement(
+        "div"
+      );
 
-    preview.id = "imagePreview";
-    preview.className = "image-preview";
+
+    preview.id =
+      "imagePreview";
+
+    preview.className =
+      "image-preview";
 
 
     preview.innerHTML = `
@@ -192,10 +261,11 @@ console.log("CATALOGUE:", window.catalogue);
       <button
         class="preview-close"
         type="button"
-        aria-label="Close preview"
+        aria-label="Close product preview"
       >
         ×
       </button>
+
 
       <div class="preview-content">
 
@@ -205,20 +275,37 @@ console.log("CATALOGUE:", window.catalogue);
           class="preview-image"
         >
 
-        <h2>${item.name}</h2>
 
-        <p>${item.description}</p>
+        <h2>
+          ${item.name}
+        </h2>
+
+
+        <p>
+          ${item.description}
+        </p>
+
 
         <strong>
           ${item.price}
         </strong>
+
+
+        <button
+          type="button"
+          class="preview-add-button"
+        >
+          ADD TO BAG
+        </button>
 
       </div>
 
     `;
 
 
-    document.body.appendChild(preview);
+    document.body.appendChild(
+      preview
+    );
 
 
     requestAnimationFrame(() => {
@@ -230,54 +317,97 @@ console.log("CATALOGUE:", window.catalogue);
     });
 
 
-    const closePreview = () => {
-
-      preview.classList.remove(
-        "preview-open"
-      );
-
-      setTimeout(() => {
-
-        if (preview.parentNode) {
-          preview.remove();
-        }
-
-      }, 300);
-
-    };
-
+    /* CLOSE */
 
     preview
-      .querySelector(".preview-close")
+      .querySelector(
+        ".preview-close"
+      )
       .addEventListener(
         "click",
-        closePreview
+        () => {
+
+          closePreview(
+            preview
+          );
+
+        }
       );
 
+
+    /* CLICK BACKGROUND TO CLOSE */
 
     preview.addEventListener(
       "click",
       event => {
 
-        if (event.target === preview) {
-          closePreview();
+        if (
+          event.target === preview
+        ) {
+
+          closePreview(
+            preview
+          );
+
         }
 
       }
     );
 
+
+    /* ADD FROM PREVIEW */
+
+    preview
+      .querySelector(
+        ".preview-add-button"
+      )
+      .addEventListener(
+        "click",
+        () => {
+
+          addToCart(item);
+
+          closePreview(
+            preview
+          );
+
+        }
+      );
+
   }
 
 
-  /* =========================================
+  function closePreview(preview) {
+
+    if (!preview) return;
+
+
+    preview.classList.remove(
+      "preview-open"
+    );
+
+
+    setTimeout(() => {
+
+      if (preview.parentNode) {
+        preview.remove();
+      }
+
+    }, 300);
+
+  }
+
+
+  /* =========================================================
      ADD TO CART
-  ========================================= */
+  ========================================================= */
 
   function addToCart(item) {
 
     const existing =
       cart.find(
         product =>
+          product.id === item.id ||
           product.name === item.name
       );
 
@@ -285,23 +415,32 @@ console.log("CATALOGUE:", window.catalogue);
     if (existing) {
 
       existing.quantity =
-        Number(existing.quantity || 0) + 1;
+        Number(
+          existing.quantity || 0
+        ) + 1;
 
     } else {
 
       cart.push({
 
-        id: item.id || item.name,
+        id:
+          item.id ||
+          item.name,
 
-        name: item.name,
+        name:
+          item.name,
 
-        price: item.price,
+        price:
+          item.price,
 
-        description: item.description,
+        description:
+          item.description,
 
-        image: item.image,
+        image:
+          item.image,
 
-        quantity: 1
+        quantity:
+          1
 
       });
 
@@ -310,31 +449,42 @@ console.log("CATALOGUE:", window.catalogue);
 
     updateCount();
 
+
     showToast(
       `${item.name} added to your bag.`
     );
+
 
     renderCart();
 
   }
 
 
-  /* =========================================
+  /* =========================================================
      REMOVE ONE
-  ========================================= */
+  ========================================================= */
 
   function removeFromCart(index) {
 
-    if (!cart[index]) return;
+    if (!cart[index]) {
+      return;
+    }
 
 
     cart[index].quantity =
-      Number(cart[index].quantity || 0) - 1;
+      Number(
+        cart[index].quantity || 0
+      ) - 1;
 
 
-    if (cart[index].quantity <= 0) {
+    if (
+      cart[index].quantity <= 0
+    ) {
 
-      cart.splice(index, 1);
+      cart.splice(
+        index,
+        1
+      );
 
     }
 
@@ -346,17 +496,21 @@ console.log("CATALOGUE:", window.catalogue);
   }
 
 
-  /* =========================================
+  /* =========================================================
      ADD ONE
-  ========================================= */
+  ========================================================= */
 
   function addOne(index) {
 
-    if (!cart[index]) return;
+    if (!cart[index]) {
+      return;
+    }
 
 
     cart[index].quantity =
-      Number(cart[index].quantity || 0) + 1;
+      Number(
+        cart[index].quantity || 0
+      ) + 1;
 
 
     updateCount();
@@ -366,23 +520,33 @@ console.log("CATALOGUE:", window.catalogue);
   }
 
 
-  /* =========================================
+  /* =========================================================
      OPEN CART
-  ========================================= */
+  ========================================================= */
 
   function openCart() {
 
     let cartPanel =
-      document.getElementById("cartPanel");
+      document.getElementById(
+        "cartPanel"
+      );
 
 
     if (!cartPanel) {
 
       cartPanel =
-        document.createElement("aside");
+        document.createElement(
+          "aside"
+        );
 
-      cartPanel.id = "cartPanel";
-      cartPanel.className = "cart-panel";
+
+      cartPanel.id =
+        "cartPanel";
+
+
+      cartPanel.className =
+        "cart-panel";
+
 
       document.body.appendChild(
         cartPanel
@@ -405,17 +569,21 @@ console.log("CATALOGUE:", window.catalogue);
   }
 
 
-  /* =========================================
+  /* =========================================================
      CLOSE CART
-  ========================================= */
+  ========================================================= */
 
   function closeCart() {
 
     const cartPanel =
-      document.getElementById("cartPanel");
+      document.getElementById(
+        "cartPanel"
+      );
 
 
-    if (!cartPanel) return;
+    if (!cartPanel) {
+      return;
+    }
 
 
     cartPanel.classList.remove(
@@ -425,17 +593,21 @@ console.log("CATALOGUE:", window.catalogue);
   }
 
 
-  /* =========================================
+  /* =========================================================
      RENDER CART
-  ========================================= */
+  ========================================================= */
 
   function renderCart() {
 
     const cartPanel =
-      document.getElementById("cartPanel");
+      document.getElementById(
+        "cartPanel"
+      );
 
 
-    if (!cartPanel) return;
+    if (!cartPanel) {
+      return;
+    }
 
 
     /* EMPTY BAG */
@@ -446,11 +618,15 @@ console.log("CATALOGUE:", window.catalogue);
 
         <div class="cart-header">
 
-          <h2>YOUR BAG</h2>
+          <h2>
+            YOUR BAG
+          </h2>
+
 
           <button
             class="cart-close"
             type="button"
+            aria-label="Close bag"
           >
             ×
           </button>
@@ -464,9 +640,11 @@ console.log("CATALOGUE:", window.catalogue);
             D
           </div>
 
+
           <h3>
             Your bag is empty.
           </h3>
+
 
           <p>
             Add something from the drop.
@@ -478,7 +656,9 @@ console.log("CATALOGUE:", window.catalogue);
 
 
       cartPanel
-        .querySelector(".cart-close")
+        .querySelector(
+          ".cart-close"
+        )
         .addEventListener(
           "click",
           closeCart
@@ -490,7 +670,7 @@ console.log("CATALOGUE:", window.catalogue);
     }
 
 
-    /* CART WITH ITEMS */
+    /* CART */
 
     cartPanel.innerHTML = `
 
@@ -500,9 +680,11 @@ console.log("CATALOGUE:", window.catalogue);
           YOUR BAG
         </h2>
 
+
         <button
           class="cart-close"
           type="button"
+          aria-label="Close bag"
         >
           ×
         </button>
@@ -512,7 +694,8 @@ console.log("CATALOGUE:", window.catalogue);
 
       <div class="cart-items">
 
-        ${cart.map((item, index) => `
+        ${cart.map(
+          (item, index) => `
 
           <div class="cart-item">
 
@@ -532,6 +715,7 @@ console.log("CATALOGUE:", window.catalogue);
                 ${item.name}
               </h3>
 
+
               <p>
                 ${item.price}
               </p>
@@ -543,6 +727,7 @@ console.log("CATALOGUE:", window.catalogue);
                   type="button"
                   class="quantity-remove"
                   data-index="${index}"
+                  aria-label="Remove one"
                 >
                   −
                 </button>
@@ -557,6 +742,7 @@ console.log("CATALOGUE:", window.catalogue);
                   type="button"
                   class="quantity-add"
                   data-index="${index}"
+                  aria-label="Add one"
                 >
                   +
                 </button>
@@ -567,7 +753,8 @@ console.log("CATALOGUE:", window.catalogue);
 
           </div>
 
-        `).join("")}
+        `
+        ).join("")}
 
       </div>
 
@@ -579,6 +766,7 @@ console.log("CATALOGUE:", window.catalogue);
           <span>
             TOTAL
           </span>
+
 
           <strong>
             £${getTotal().toFixed(2)}
@@ -602,7 +790,9 @@ console.log("CATALOGUE:", window.catalogue);
     /* CLOSE */
 
     cartPanel
-      .querySelector(".cart-close")
+      .querySelector(
+        ".cart-close"
+      )
       .addEventListener(
         "click",
         closeCart
@@ -612,7 +802,9 @@ console.log("CATALOGUE:", window.catalogue);
     /* MINUS */
 
     cartPanel
-      .querySelectorAll(".quantity-remove")
+      .querySelectorAll(
+        ".quantity-remove"
+      )
       .forEach(button => {
 
         button.addEventListener(
@@ -620,7 +812,9 @@ console.log("CATALOGUE:", window.catalogue);
           () => {
 
             removeFromCart(
-              Number(button.dataset.index)
+              Number(
+                button.dataset.index
+              )
             );
 
           }
@@ -632,7 +826,9 @@ console.log("CATALOGUE:", window.catalogue);
     /* PLUS */
 
     cartPanel
-      .querySelectorAll(".quantity-add")
+      .querySelectorAll(
+        ".quantity-add"
+      )
       .forEach(button => {
 
         button.addEventListener(
@@ -640,7 +836,9 @@ console.log("CATALOGUE:", window.catalogue);
           () => {
 
             addOne(
-              Number(button.dataset.index)
+              Number(
+                button.dataset.index
+              )
             );
 
           }
@@ -675,9 +873,9 @@ console.log("CATALOGUE:", window.catalogue);
   }
 
 
-  /* =========================================
+  /* =========================================================
      CHECKOUT
-  ========================================= */
+  ========================================================= */
 
   function openCheckout() {
 
@@ -704,24 +902,40 @@ console.log("CATALOGUE:", window.catalogue);
 
 
     const checkout =
-      document.createElement("div");
+      document.createElement(
+        "div"
+      );
 
 
     checkout.id =
       "checkoutOverlay";
 
+
     checkout.className =
       "checkout-overlay";
 
 
-    /* FORCE CHECKOUT ABOVE EVERYTHING */
+    /* Force checkout above everything */
 
-    checkout.style.position = "fixed";
-    checkout.style.inset = "0";
-    checkout.style.zIndex = "999999";
-    checkout.style.background = "rgba(3,3,8,0.98)";
-    checkout.style.overflowY = "auto";
+    checkout.style.position =
+      "fixed";
 
+    checkout.style.inset =
+      "0";
+
+    checkout.style.zIndex =
+      "999999";
+
+    checkout.style.background =
+      "rgba(3,3,8,0.98)";
+
+    checkout.style.overflowY =
+      "auto";
+
+
+    /* =====================================================
+       CHECKOUT HTML
+    ===================================================== */
 
     checkout.innerHTML = `
 
@@ -730,10 +944,12 @@ console.log("CATALOGUE:", window.catalogue);
         style="
           max-width:700px;
           margin:0 auto;
-          padding:30px 20px 60px;
+          padding:30px 20px 70px;
         "
       >
 
+
+        <!-- HEADER -->
 
         <div
           class="checkout-header"
@@ -741,6 +957,7 @@ console.log("CATALOGUE:", window.catalogue);
             display:flex;
             justify-content:space-between;
             align-items:center;
+            gap:20px;
             margin-bottom:30px;
           "
         >
@@ -753,6 +970,7 @@ console.log("CATALOGUE:", window.catalogue);
           <button
             id="checkoutClose"
             type="button"
+            aria-label="Close checkout"
             style="
               font-size:32px;
               background:none;
@@ -767,7 +985,9 @@ console.log("CATALOGUE:", window.catalogue);
         </div>
 
 
-        <!-- CUSTOMER DETAILS -->
+        <!-- =================================================
+             CUSTOMER DETAILS
+        ================================================== -->
 
         <section>
 
@@ -776,9 +996,10 @@ console.log("CATALOGUE:", window.catalogue);
           </p>
 
 
-          <label>
+          <label for="customerName">
             Full name
           </label>
+
 
           <input
             id="customerName"
@@ -788,9 +1009,10 @@ console.log("CATALOGUE:", window.catalogue);
           >
 
 
-          <label>
+          <label for="customerEmail">
             Email address
           </label>
+
 
           <input
             id="customerEmail"
@@ -800,9 +1022,10 @@ console.log("CATALOGUE:", window.catalogue);
           >
 
 
-          <label>
+          <label for="customerPhone">
             Phone number
           </label>
+
 
           <input
             id="customerPhone"
@@ -814,7 +1037,9 @@ console.log("CATALOGUE:", window.catalogue);
         </section>
 
 
-        <!-- DELIVERY ADDRESS -->
+        <!-- =================================================
+             DELIVERY ADDRESS
+        ================================================== -->
 
         <section>
 
@@ -823,9 +1048,10 @@ console.log("CATALOGUE:", window.catalogue);
           </p>
 
 
-          <label>
+          <label for="addressLine1">
             House number / name
           </label>
+
 
           <input
             id="addressLine1"
@@ -835,9 +1061,10 @@ console.log("CATALOGUE:", window.catalogue);
           >
 
 
-          <label>
+          <label for="addressLine2">
             Street
           </label>
+
 
           <input
             id="addressLine2"
@@ -847,9 +1074,10 @@ console.log("CATALOGUE:", window.catalogue);
           >
 
 
-          <label>
+          <label for="customerCity">
             Town / City
           </label>
+
 
           <input
             id="customerCity"
@@ -859,21 +1087,24 @@ console.log("CATALOGUE:", window.catalogue);
           >
 
 
-          <label>
+          <label for="customerPostcode">
             Postcode
           </label>
+
 
           <input
             id="customerPostcode"
             type="text"
-            placeholder="Postcode"
+            placeholder="e.g. SW1A 1AA"
             autocomplete="postal-code"
           >
 
         </section>
 
 
-        <!-- DELIVERY METHOD -->
+        <!-- =================================================
+             DELIVERY
+        ================================================== -->
 
         <section>
 
@@ -885,7 +1116,11 @@ console.log("CATALOGUE:", window.catalogue);
           <div class="delivery-options">
 
 
-            <label class="delivery-option">
+            <!-- TRACKED 48 -->
+
+            <label
+              class="delivery-option"
+            >
 
               <input
                 type="radio"
@@ -895,17 +1130,20 @@ console.log("CATALOGUE:", window.catalogue);
                 checked
               >
 
+
               <span>
 
                 <strong>
                   Royal Mail Tracked 48
                 </strong>
 
+
                 <small>
                   2–3 working days
                 </small>
 
               </span>
+
 
               <b>
                 £3.39
@@ -914,7 +1152,11 @@ console.log("CATALOGUE:", window.catalogue);
             </label>
 
 
-            <label class="delivery-option">
+            <!-- TRACKED 24 -->
+
+            <label
+              class="delivery-option"
+            >
 
               <input
                 type="radio"
@@ -923,17 +1165,20 @@ console.log("CATALOGUE:", window.catalogue);
                 data-price="4.25"
               >
 
+
               <span>
 
                 <strong>
                   Royal Mail Tracked 24
                 </strong>
 
+
                 <small>
                   Next working day aim
                 </small>
 
               </span>
+
 
               <b>
                 £4.25
@@ -942,7 +1187,11 @@ console.log("CATALOGUE:", window.catalogue);
             </label>
 
 
-            <label class="delivery-option">
+            <!-- SPECIAL DELIVERY -->
+
+            <label
+              class="delivery-option"
+            >
 
               <input
                 type="radio"
@@ -951,17 +1200,20 @@ console.log("CATALOGUE:", window.catalogue);
                 data-price="9.45"
               >
 
+
               <span>
 
                 <strong>
                   Royal Mail Special Delivery
                 </strong>
 
+
                 <small>
                   Next-day service
                 </small>
 
               </span>
+
 
               <b>
                 £9.45
@@ -975,7 +1227,9 @@ console.log("CATALOGUE:", window.catalogue);
         </section>
 
 
-        <!-- ORDER SUMMARY -->
+        <!-- =================================================
+             ORDER SUMMARY
+        ================================================== -->
 
         <section>
 
@@ -986,7 +1240,8 @@ console.log("CATALOGUE:", window.catalogue);
 
           <div id="checkoutItems">
 
-            ${cart.map(item => `
+            ${cart.map(
+              item => `
 
               <div
                 style="
@@ -1002,6 +1257,7 @@ console.log("CATALOGUE:", window.catalogue);
                   × ${item.quantity}
                 </span>
 
+
                 <strong>
                   £${(
                     getPrice(item.price) *
@@ -1011,7 +1267,8 @@ console.log("CATALOGUE:", window.catalogue);
 
               </div>
 
-            `).join("")}
+            `
+            ).join("")}
 
           </div>
 
@@ -1019,219 +1276,9 @@ console.log("CATALOGUE:", window.catalogue);
           <hr>
 
 
-          <div
-            style="
-              display:flex;
-              justify-content:space-between;
-              margin:15px 0;
-            "
-          >
-
-            <span>
-              Items
-            </span>
-
-            <strong>
-              £${getTotal().toFixed(2)}
-            </strong>
-
-          </div>
-
+          <!-- ITEMS -->
 
           <div
             style="
               display:flex;
-              justify-content:space-between;
-              margin:15px 0;
-            "
-          >
-
-            <span>
-              Delivery
-            </span>
-
-            <strong id="checkoutDelivery">
-              £3.39
-            </strong>
-
-          </div>
-
-
-          <div
-            style="
-              display:flex;
-              justify-content:space-between;
-              font-size:22px;
-              margin-top:20px;
-            "
-          >
-
-            <strong>
-              TOTAL
-            </strong>
-
-            <strong id="checkoutGrandTotal">
-              £${(
-                getTotal() + 3.39
-              ).toFixed(2)}
-            </strong>
-
-          </div>
-
-        </section>
-
-
-        <!-- CONTINUE -->
-
-        <button
-          id="continueToPayment"
-          type="button"
-          class="checkout-button"
-          style="
-            width:100%;
-            margin-top:30px;
-          "
-        >
-          CONTINUE TO PAYMENT
-        </button>
-
-
-        <p
-          style="
-            text-align:center;
-            opacity:.6;
-            margin-top:20px;
-            font-size:13px;
-          "
-        >
-          Payment will be connected later.
-        </p>
-
-
-      </div>
-
-    `;
-
-
-    document.body.appendChild(
-      checkout
-    );
-
-
-    /* =====================================
-       CLOSE CHECKOUT
-    ===================================== */
-
-    checkout
-      .querySelector("#checkoutClose")
-      .addEventListener(
-        "click",
-        () => {
-
-          checkout.remove();
-
-        }
-      );
-
-
-    /* =====================================
-       DELIVERY CALCULATION
-    ===================================== */
-
-    const deliveryInputs =
-      checkout.querySelectorAll(
-        'input[name="delivery"]'
-      );
-
-
-    const deliveryOutput =
-      checkout.querySelector(
-        "#checkoutDelivery"
-      );
-
-
-    const grandTotalOutput =
-      checkout.querySelector(
-        "#checkoutGrandTotal"
-      );
-
-
-    function updateDelivery() {
-
-      const selected =
-        checkout.querySelector(
-          'input[name="delivery"]:checked'
-        );
-
-
-      if (!selected) return;
-
-
-      const deliveryPrice =
-        Number(
-          selected.dataset.price
-        );
-
-
-      deliveryOutput.textContent =
-        `£${deliveryPrice.toFixed(2)}`;
-
-
-      grandTotalOutput.textContent =
-        `£${(
-          getTotal() +
-          deliveryPrice
-        ).toFixed(2)}`;
-
-    }
-
-
-    deliveryInputs.forEach(
-      input => {
-
-        input.addEventListener(
-          "change",
-          updateDelivery
-        );
-
-      }
-    );
-
-
-    updateDelivery();
-
-
-    /* =====================================
-       CONTINUE TO PAYMENT
-    ===================================== */
-
-    checkout
-      .querySelector("#continueToPayment")
-      .addEventListener(
-        "click",
-        () => {
-
-          /* CUSTOMER DETAILS */
-
-          const name =
-            checkout
-              .querySelector("#customerName")
-              .value
-              .trim();
-
-
-          const email =
-            checkout
-              .querySelector("#customerEmail")
-              .value
-              .trim();
-
-
-          const phone =
-            checkout
-              .querySelector("#customerPhone"
-                             updateCount();
-
-renderCatalogue();
-
-})();
+        
