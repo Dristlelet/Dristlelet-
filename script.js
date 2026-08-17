@@ -4,152 +4,400 @@
   const countEl = document.getElementById("cartCount");
   const toast = document.getElementById("toast");
 
-  if (!productsEl || !cartButton || !countEl || !toast) return;
+  if (!productsEl) return;
 
-  const catalogue = [
-    {
-      name: "Pink × Purple Hoodie",
-      price: "£55",
-      image: "pink-purple-collection.png",
-      description: "Black heavyweight streetwear hoodie with the Pink × Purple Dristlelet design."
-    },
-    {
-      name: "Pink Collection Hoodie",
-      price: "£55",
-      image: "pink-collection.png",
-      description: "Pink Dristlelet hoodie with matching front, back and sleeve graphics."
-    },
-    {
-      name: "Drey King Hoodie",
-      price: "£55",
-      image: "drey-king.png",
-      description: "Drey King collection hoodie with electric blue graphics."
-    },
-    {
-      name: "Black Lightning Hoodie",
-      price: "£55",
-      image: "black-pink-purple.png",
-      description: "Black Dristlelet hoodie with neon pink and purple lightning graphics."
-    },
-    {
-      name: "Blue Voltage Hoodie",
-      price: "£55",
-      image: "blue-voltage.png",
-      description: "Black Dristlelet hoodie with electric blue graphics."
-    }
-  ];
+  let cart = JSON.parse(localStorage.getItem("dristleletCartItems") || "[]");
 
-  let cart = Number(localStorage.getItem("dristleletCart") || 0);
-
-  if (!Number.isFinite(cart) || cart < 0) {
-    cart = 0;
+  if (!Array.isArray(cart)) {
+    cart = [];
   }
 
-  countEl.textContent = cart;
+  function updateCount() {
+    const count = cart.reduce((total, item) => total + item.quantity, 0);
 
-  let toastTimer;
+    if (countEl) {
+      countEl.textContent = count;
+    }
+
+    localStorage.setItem(
+      "dristleletCartItems",
+      JSON.stringify(cart)
+    );
+  }
 
   function showToast(message) {
+    if (!toast) return;
+
     toast.textContent = message;
     toast.classList.remove("hide");
     toast.classList.add("show");
 
-    clearTimeout(toastTimer);
-
-    toastTimer = setTimeout(() => {
+    setTimeout(() => {
       toast.classList.remove("show");
       toast.classList.add("hide");
     }, 1800);
   }
 
-  function escapeHTML(value) {
-    return String(value ?? "").replace(/[&<>"']/g, char => ({
-      "&": "&amp;",
-      "<": "&lt;",
-      ">": "&gt;",
-      '"': "&quot;",
-      "'": "&#39;"
-    }[char]));
-  }
+  /* ================================
+     IMAGE PREVIEW
+     ================================ */
 
-  function renderCatalogue() {
-    productsEl.innerHTML = catalogue.map((item, index) => {
-      const name = escapeHTML(item.name);
-      const price = escapeHTML(item.price);
-      const image = escapeHTML(item.image);
-      const description = escapeHTML(item.description);
+  function createPreview(item) {
+    const oldPreview = document.getElementById("imagePreview");
 
-      return `
-        <article class="product">
-          <div class="product-image-wrap">
-            <img
-              class="product-image"
-              src="${image}"
-              alt="${name}"
-              loading="lazy"
-            >
-            <div class="image-fallback">
-              DRISTLELET
-            </div>
-          </div>
+    if (oldPreview) {
+      oldPreview.remove();
+    }
 
-          <div class="product-info">
-            <h3>${name}</h3>
-            <p>${description}</p>
-            <strong>${price}</strong>
-            <button
-              class="add"
-              type="button"
-              data-product="${index}"
-            >
-              ADD TO BAG
-            </button>
-          </div>
-        </article>
-      `;
-    }).join("");
+    const preview = document.createElement("div");
 
-    productsEl.querySelectorAll(".product-image").forEach(img => {
-      img.addEventListener("error", () => {
-        img.classList.add("image-missing");
+    preview.id = "imagePreview";
+    preview.className = "image-preview";
 
-        const fallback = img.nextElementSibling;
+    preview.innerHTML = `
+      <button class="preview-close" type="button" aria-label="Close preview">
+        ×
+      </button>
 
-        if (fallback) {
-          fallback.classList.add("show");
-        }
-      });
+      <div class="preview-content">
+        ${item.art}
+        <h2>${item.name}</h2>
+        <p>${item.description}</p>
+        <strong>${item.price}</strong>
+      </div>
+    `;
+
+    document.body.appendChild(preview);
+
+    requestAnimationFrame(() => {
+      preview.classList.add("preview-open");
     });
 
-    productsEl.querySelectorAll(".add").forEach(button => {
-      button.addEventListener("click", () => {
-        const product = catalogue[Number(button.dataset.product)];
+    preview.querySelector(".preview-close").addEventListener("click", () => {
+      preview.classList.remove("preview-open");
 
-        cart++;
-        countEl.textContent = cart;
+      setTimeout(() => {
+        preview.remove();
+      }, 300);
+    });
 
-        localStorage.setItem("dristleletCart", String(cart));
-
-        button.classList.add("cart-pop");
+    preview.addEventListener("click", event => {
+      if (event.target === preview) {
+        preview.classList.remove("preview-open");
 
         setTimeout(() => {
-          button.classList.remove("cart-pop");
+          preview.remove();
         }, 300);
-
-        showToast(`${product.name} added to your bag.`);
-      });
+      }
     });
   }
 
-  cartButton.addEventListener("click", () => {
-    if (cart === 0) {
-      showToast("Your bag is empty.");
-    } else {
-      showToast(
-        `You have ${cart} item${cart === 1 ? "" : "s"} in your bag.`
-      );
-    }
-  });
+  /* ================================
+     CART
+     ================================ */
 
+  function addToCart(item) {
+    const existing = cart.find(product => product.name === item.name);
+
+    if (existing) {
+      existing.quantity++;
+    } else {
+      cart.push({
+        name: item.name,
+        price: item.price,
+        description: item.description,
+        art: item.art,
+        quantity: 1
+      });
+    }
+
+    updateCount();
+
+    showToast(`${item.name} added to your bag.`);
+
+    renderCart();
+  }
+
+  function removeFromCart(index) {
+    if (!cart[index]) return;
+
+    cart[index].quantity--;
+
+    if (cart[index].quantity <= 0) {
+      cart.splice(index, 1);
+    }
+
+    updateCount();
+    renderCart();
+  }
+
+  function getTotal() {
+    return cart.reduce((total, item) => {
+      const price = Number(
+        String(item.price).replace("£", "")
+      );
+
+      return total + price * item.quantity;
+    }, 0);
+  }
+
+  function openCart() {
+    let cartPanel = document.getElementById("cartPanel");
+
+    if (!cartPanel) {
+      cartPanel = document.createElement("aside");
+
+      cartPanel.id = "cartPanel";
+      cartPanel.className = "cart-panel";
+
+      document.body.appendChild(cartPanel);
+    }
+
+    renderCart();
+
+    requestAnimationFrame(() => {
+      cartPanel.classList.add("cart-open");
+    });
+  }
+
+  function closeCart() {
+    const cartPanel = document.getElementById("cartPanel");
+
+    if (!cartPanel) return;
+
+    cartPanel.classList.remove("cart-open");
+  }
+
+  function renderCart() {
+    const cartPanel = document.getElementById("cartPanel");
+
+    if (!cartPanel) return;
+
+    if (cart.length === 0) {
+      cartPanel.innerHTML = `
+        <div class="cart-header">
+          <h2>YOUR BAG</h2>
+          <button class="cart-close" type="button">×</button>
+        </div>
+
+        <div class="cart-empty">
+          <div class="cart-empty-icon">D</div>
+          <h3>Your bag is empty.</h3>
+          <p>Add something from the drop.</p>
+        </div>
+      `;
+
+      cartPanel
+        .querySelector(".cart-close")
+        .addEventListener("click", closeCart);
+
+      return;
+    }
+
+    cartPanel.innerHTML = `
+      <div class="cart-header">
+        <h2>YOUR BAG</h2>
+        <button class="cart-close" type="button">×</button>
+      </div>
+
+      <div class="cart-items">
+        ${cart.map((item, index) => `
+          <div class="cart-item">
+
+            <div class="cart-item-art">
+              ${item.art}
+            </div>
+
+            <div class="cart-item-info">
+              <h3>${item.name}</h3>
+              <p>${item.price}</p>
+
+              <div class="quantity">
+                <button
+                  type="button"
+                  class="quantity-remove"
+                  data-index="${index}">
+                  −
+                </button>
+
+                <span>${item.quantity}</span>
+
+                <button
+                  type="button"
+                  class="quantity-add"
+                  data-index="${index}">
+                  +
+                </button>
+              </div>
+            </div>
+
+          </div>
+        `).join("")}
+      </div>
+
+      <div class="cart-footer">
+        <div class="cart-total">
+          <span>TOTAL</span>
+          <strong>£${getTotal()}</strong>
+        </div>
+
+        <button class="checkout-button" type="button">
+          CHECKOUT
+        </button>
+      </div>
+    `;
+
+    cartPanel
+      .querySelector(".cart-close")
+      .addEventListener("click", closeCart);
+
+    cartPanel
+      .querySelectorAll(".quantity-remove")
+      .forEach(button => {
+        button.addEventListener("click", () => {
+          removeFromCart(Number(button.dataset.index));
+        });
+      });
+
+    cartPanel
+      .querySelectorAll(".quantity-add")
+      .forEach(button => {
+        button.addEventListener("click", () => {
+          const index = Number(button.dataset.index);
+
+          if (cart[index]) {
+            cart[index].quantity++;
+          }
+
+          updateCount();
+          renderCart();
+        });
+      });
+
+    cartPanel
+      .querySelector(".checkout-button")
+      .addEventListener("click", () => {
+        showToast("Checkout is coming soon.");
+      });
+  }
+
+  /* ================================
+     CATALOGUE
+     ================================ */
+
+  function renderCatalogue() {
+    const items = Array.isArray(window.catalogue)
+      ? window.catalogue
+      : [];
+
+    productsEl.innerHTML = items.map((item, index) => `
+      <article class="product reveal-product">
+
+        <div
+          class="product-image-wrap product-preview"
+          data-index="${index}"
+          role="button"
+          tabindex="0"
+          aria-label="Preview ${item.name}">
+          ${item.art}
+        </div>
+
+        <div class="product-info">
+
+          <h3>${item.name}</h3>
+
+          <p>${item.description}</p>
+
+          <strong>${item.price}</strong>
+
+          <button
+            class="add"
+            type="button"
+            data-index="${index}">
+            ADD TO BAG
+          </button>
+
+        </div>
+
+      </article>
+    `).join("");
+
+    /* ADD TO BAG */
+
+    productsEl
+      .querySelectorAll(".add")
+      .forEach(button => {
+        button.addEventListener("click", () => {
+          const item = items[
+            Number(button.dataset.index)
+          ];
+
+          addToCart(item);
+        });
+      });
+
+    /* IMAGE PREVIEW */
+
+    productsEl
+      .querySelectorAll(".product-preview")
+      .forEach(preview => {
+
+        const open = () => {
+          const item = items[
+            Number(preview.dataset.index)
+          ];
+
+          createPreview(item);
+        };
+
+        preview.addEventListener("click", open);
+
+        preview.addEventListener("keydown", event => {
+          if (
+            event.key === "Enter" ||
+            event.key === " "
+          ) {
+            event.preventDefault();
+            open();
+          }
+        });
+      });
+
+    /* SCROLL ANIMATION */
+
+    const revealItems =
+      productsEl.querySelectorAll(".reveal-product");
+
+    const observer = new IntersectionObserver(
+      entries => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add("product-visible");
+            observer.unobserve(entry.target);
+          }
+        });
+      },
+      {
+        threshold: 0.15
+      }
+    );
+
+    revealItems.forEach(item => {
+      observer.observe(item);
+    });
+  }
+
+  /* ================================
+     BAG BUTTON
+     ================================ */
+
+  if (cartButton) {
+    cartButton.addEventListener("click", () => {
+      openCart();
+    });
+  }
+
+  updateCount();
   renderCatalogue();
+
 })();
