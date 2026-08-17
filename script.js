@@ -1,5 +1,6 @@
 // =========================================
 // DRISTLELET — MAIN WEBSITE JAVASCRIPT
+// CART + CHECKOUT + DELIVERY CALCULATOR
 // =========================================
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -9,15 +10,14 @@ document.addEventListener("DOMContentLoaded", () => {
   const countEl = document.getElementById("cartCount");
   const toast = document.getElementById("toast");
 
-  // Stop if the products area does not exist
   if (!productsEl) {
-    console.error("DRISTLELET: #products was not found.");
+    console.error("DRISTLELET: products area not found.");
     return;
   }
 
 
   // =========================================
-  // CART STORAGE
+  // CART
   // =========================================
 
   let cart = [];
@@ -32,9 +32,38 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
   } catch (error) {
-    console.error("Could not load saved cart:", error);
     cart = [];
   }
+
+
+  // =========================================
+  // DELIVERY OPTIONS
+  // =========================================
+
+  const deliveryOptions = {
+
+    tracked48: {
+      name: "Royal Mail Tracked 48",
+      price: 3.65,
+      description: "Aims for 2–3 working days"
+    },
+
+    tracked24: {
+      name: "Royal Mail Tracked 24",
+      price: 4.65,
+      description: "Aims for next working day"
+    },
+
+    special: {
+      name: "Royal Mail Special Delivery by 1pm",
+      price: 9.45,
+      description: "Guaranteed by 1pm next working day*"
+    }
+
+  };
+
+
+  let selectedDelivery = "tracked48";
 
 
   // =========================================
@@ -43,9 +72,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function updateCount() {
 
-    const count = cart.reduce((total, item) => {
-      return total + Number(item.quantity || 0);
-    }, 0);
+    const count = cart.reduce(
+      (total, item) =>
+        total + Number(item.quantity || 0),
+      0
+    );
 
     if (countEl) {
       countEl.textContent = count;
@@ -79,16 +110,52 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
   // =========================================
+  // PRODUCT PRICE
+  // =========================================
+
+  function priceNumber(price) {
+
+    return Number(
+      String(price)
+        .replace("£", "")
+        .replace(",", "")
+        .trim()
+    ) || 0;
+
+  }
+
+
+  // =========================================
+  // CART TOTAL
+  // =========================================
+
+  function getCartTotal() {
+
+    return cart.reduce(
+      (total, item) => {
+
+        return total +
+          priceNumber(item.price) *
+          Number(item.quantity || 0);
+
+      },
+      0
+    );
+
+  }
+
+
+  // =========================================
   // IMAGE PREVIEW
   // =========================================
 
   function createPreview(item) {
 
-    const oldPreview =
+    const old =
       document.getElementById("imagePreview");
 
-    if (oldPreview) {
-      oldPreview.remove();
+    if (old) {
+      old.remove();
     }
 
 
@@ -104,7 +171,6 @@ document.addEventListener("DOMContentLoaded", () => {
       <button
         class="preview-close"
         type="button"
-        aria-label="Close preview"
       >
         ×
       </button>
@@ -136,7 +202,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
 
-    const closePreview = () => {
+    function closePreview() {
 
       preview.classList.remove(
         "preview-open"
@@ -149,7 +215,8 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
       }, 300);
-    };
+
+    }
 
 
     preview
@@ -180,9 +247,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function addToCart(item) {
 
-    const existing = cart.find(
-      product => product.name === item.name
-    );
+    const existing =
+      cart.find(
+        product =>
+          product.name === item.name
+      );
 
 
     if (existing) {
@@ -224,7 +293,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
   // =========================================
-  // REMOVE ONE ITEM
+  // REMOVE ONE
   // =========================================
 
   function removeFromCart(index) {
@@ -249,7 +318,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
   // =========================================
-  // ADD ONE ITEM
+  // ADD ONE
   // =========================================
 
   function addOne(index) {
@@ -264,34 +333,6 @@ document.addEventListener("DOMContentLoaded", () => {
     updateCount();
 
     renderCart();
-
-  }
-
-
-  // =========================================
-  // CART TOTAL
-  // =========================================
-
-  function getTotal() {
-
-    return cart.reduce(
-      (total, item) => {
-
-        const price = Number(
-          String(item.price)
-            .replace("£", "")
-            .replace(",", "")
-            .trim()
-        ) || 0;
-
-
-        return total +
-          price *
-          Number(item.quantity || 0);
-
-      },
-      0
-    );
 
   }
 
@@ -358,6 +399,673 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
   // =========================================
+  // CHECKOUT STYLE
+  // =========================================
+
+  function addCheckoutStyles() {
+
+    if (
+      document.getElementById(
+        "dristleletCheckoutStyles"
+      )
+    ) {
+      return;
+    }
+
+
+    const style =
+      document.createElement("style");
+
+    style.id =
+      "dristleletCheckoutStyles";
+
+
+    style.textContent = `
+
+      .checkout-overlay {
+        position: fixed;
+        inset: 0;
+        z-index: 10000;
+        background: rgba(0,0,0,.88);
+        backdrop-filter: blur(14px);
+        overflow-y: auto;
+        padding: 20px;
+        opacity: 0;
+        transition: opacity .3s ease;
+      }
+
+      .checkout-overlay.open {
+        opacity: 1;
+      }
+
+      .checkout-box {
+        width: min(700px, 100%);
+        margin: 30px auto;
+        background: #0d0d12;
+        border: 1px solid #292936;
+        padding: 25px;
+        color: white;
+      }
+
+      .checkout-top {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 20px;
+        margin-bottom: 25px;
+      }
+
+      .checkout-top h2 {
+        margin: 0;
+      }
+
+      .checkout-close {
+        width: 44px;
+        height: 44px;
+        background: transparent;
+        color: white;
+        border: 1px solid #444451;
+        font-size: 25px;
+        cursor: pointer;
+      }
+
+      .checkout-section {
+        margin-top: 25px;
+      }
+
+      .checkout-section h3 {
+        margin-bottom: 15px;
+      }
+
+      .checkout-form {
+        display: grid;
+        gap: 14px;
+      }
+
+      .checkout-form label {
+        font-size: .75rem;
+        color: #aaaab5;
+      }
+
+      .checkout-form input {
+        width: 100%;
+        margin-top: 7px;
+        padding: 14px;
+        background: #08080c;
+        color: white;
+        border: 1px solid #30303b;
+        font-family: inherit;
+        outline: none;
+      }
+
+      .checkout-form input:focus {
+        border-color: #6b8cff;
+      }
+
+      .delivery-option {
+        display: block;
+        padding: 15px;
+        margin-bottom: 10px;
+        border: 1px solid #30303b;
+        cursor: pointer;
+        background: #08080c;
+      }
+
+      .delivery-option.selected {
+        border-color: #6b8cff;
+        box-shadow: 0 0 20px rgba(23,119,255,.12);
+      }
+
+      .delivery-option input {
+        margin-right: 10px;
+      }
+
+      .delivery-name {
+        font-weight: 800;
+      }
+
+      .delivery-description {
+        display: block;
+        color: #92929d;
+        font-size: .7rem;
+        margin-top: 7px;
+        padding-left: 25px;
+      }
+
+      .checkout-summary {
+        border-top: 1px solid #30303b;
+        margin-top: 25px;
+        padding-top: 20px;
+      }
+
+      .summary-row {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 12px;
+        color: #aaaab5;
+      }
+
+      .summary-row.total {
+        color: white;
+        font-size: 1.1rem;
+        margin-top: 15px;
+        padding-top: 15px;
+        border-top: 1px solid #30303b;
+      }
+
+      .place-order {
+        width: 100%;
+        margin-top: 20px;
+        padding: 17px;
+        border: 0;
+        background: white;
+        color: black;
+        font-family: inherit;
+        font-weight: 800;
+        cursor: pointer;
+      }
+
+      .test-notice {
+        margin-top: 15px;
+        padding: 12px;
+        border: 1px solid #343444;
+        color: #8f8f9a;
+        font-size: .65rem;
+        line-height: 1.6;
+      }
+
+      @media (max-width: 600px) {
+
+        .checkout-overlay {
+          padding: 10px;
+        }
+
+        .checkout-box {
+          padding: 18px;
+          margin: 10px auto;
+        }
+
+      }
+
+    `;
+
+
+    document.head.appendChild(style);
+
+  }
+
+
+  // =========================================
+  // CHECKOUT
+  // =========================================
+
+  function openCheckout() {
+
+    if (cart.length === 0) {
+
+      showToast(
+        "Your bag is empty."
+      );
+
+      return;
+
+    }
+
+
+    addCheckoutStyles();
+
+
+    const old =
+      document.getElementById(
+        "checkoutOverlay"
+      );
+
+
+    if (old) {
+      old.remove();
+    }
+
+
+    const checkout =
+      document.createElement("div");
+
+    checkout.id =
+      "checkoutOverlay";
+
+    checkout.className =
+      "checkout-overlay";
+
+
+    checkout.innerHTML = `
+
+      <div class="checkout-box">
+
+        <div class="checkout-top">
+
+          <h2>
+            CHECKOUT
+          </h2>
+
+          <button
+            class="checkout-close"
+            type="button"
+          >
+            ×
+          </button>
+
+        </div>
+
+
+        <form
+          class="checkout-form"
+          id="checkoutForm"
+        >
+
+
+          <div class="checkout-section">
+
+            <h3>
+              YOUR DETAILS
+            </h3>
+
+
+            <label>
+              Full name
+
+              <input
+                type="text"
+                name="fullName"
+                autocomplete="name"
+                required
+                placeholder="Your full name"
+              >
+
+            </label>
+
+
+            <label>
+              Email address
+
+              <input
+                type="email"
+                name="email"
+                autocomplete="email"
+                required
+                placeholder="you@example.com"
+              >
+
+            </label>
+
+
+            <label>
+              Phone number
+
+              <input
+                type="tel"
+                name="phone"
+                autocomplete="tel"
+                required
+                placeholder="Your phone number"
+              >
+
+            </label>
+
+          </div>
+
+
+          <div class="checkout-section">
+
+            <h3>
+              DELIVERY ADDRESS
+            </h3>
+
+
+            <label>
+              House number and street
+
+              <input
+                type="text"
+                name="address"
+                autocomplete="street-address"
+                required
+                placeholder="House number and street"
+              >
+
+            </label>
+
+
+            <label>
+              Town / City
+
+              <input
+                type="text"
+                name="city"
+                autocomplete="address-level2"
+                required
+                placeholder="Town or city"
+              >
+
+            </label>
+
+
+            <label>
+              Postcode
+
+              <input
+                type="text"
+                name="postcode"
+                autocomplete="postal-code"
+                required
+                placeholder="Postcode"
+              >
+
+            </label>
+
+          </div>
+
+
+          <div class="checkout-section">
+
+            <h3>
+              DELIVERY METHOD
+            </h3>
+
+
+            <div id="deliveryOptions">
+
+              ${Object.entries(
+                deliveryOptions
+              ).map(
+                ([key, option]) => `
+
+                  <label
+                    class="delivery-option ${
+                      key === selectedDelivery
+                        ? "selected"
+                        : ""
+                    }"
+                    data-delivery="${key}"
+                  >
+
+                    <input
+                      type="radio"
+                      name="delivery"
+                      value="${key}"
+                      ${
+                        key === selectedDelivery
+                          ? "checked"
+                          : ""
+                      }
+                    >
+
+                    <span class="delivery-name">
+                      ${option.name}
+                    </span>
+
+                    <strong>
+                      £${option.price.toFixed(2)}
+                    </strong>
+
+                    <span
+                      class="delivery-description"
+                    >
+                      ${option.description}
+                    </span>
+
+                  </label>
+
+                `
+              ).join("")}
+
+            </div>
+
+          </div>
+
+
+          <div
+            class="checkout-summary"
+            id="checkoutSummary"
+          ></div>
+
+
+          <button
+            type="submit"
+            class="place-order"
+          >
+            CONTINUE TO PAYMENT
+          </button>
+
+
+          <div class="test-notice">
+
+            TESTING MODE — This GitHub version
+            does not send or store your customer
+            details and does not take payment.
+            We will connect secure checkout/payment
+            services before the official launch.
+
+          </div>
+
+
+        </form>
+
+      </div>
+
+    `;
+
+
+    document.body.appendChild(
+      checkout
+    );
+
+
+    requestAnimationFrame(() => {
+      checkout.classList.add("open");
+    });
+
+
+    const form =
+      checkout.querySelector(
+        "#checkoutForm"
+      );
+
+
+    const summary =
+      checkout.querySelector(
+        "#checkoutSummary"
+      );
+
+
+    // =====================================
+    // UPDATE CHECKOUT TOTAL
+    // =====================================
+
+    function updateCheckoutTotal() {
+
+      const subtotal =
+        getCartTotal();
+
+
+      const delivery =
+        deliveryOptions[
+          selectedDelivery
+        ].price;
+
+
+      const total =
+        subtotal + delivery;
+
+
+      summary.innerHTML = `
+
+        <div class="summary-row">
+
+          <span>
+            Items
+          </span>
+
+          <strong>
+            £${subtotal.toFixed(2)}
+          </strong>
+
+        </div>
+
+
+        <div class="summary-row">
+
+          <span>
+            Delivery
+          </span>
+
+          <strong>
+            £${delivery.toFixed(2)}
+          </strong>
+
+        </div>
+
+
+        <div class="summary-row total">
+
+          <span>
+            TOTAL
+          </span>
+
+          <strong>
+            £${total.toFixed(2)}
+          </strong>
+
+        </div>
+
+      `;
+
+    }
+
+
+    updateCheckoutTotal();
+
+
+    // =====================================
+    // DELIVERY SELECTION
+    // =====================================
+
+    checkout
+      .querySelectorAll(
+        ".delivery-option"
+      )
+      .forEach(option => {
+
+        option.addEventListener(
+          "click",
+          () => {
+
+            selectedDelivery =
+              option.dataset.delivery;
+
+
+            checkout
+              .querySelectorAll(
+                ".delivery-option"
+              )
+              .forEach(item => {
+
+                item.classList.remove(
+                  "selected"
+                );
+
+              });
+
+
+            option.classList.add(
+              "selected"
+            );
+
+
+            const radio =
+              option.querySelector(
+                "input"
+              );
+
+
+            radio.checked = true;
+
+
+            updateCheckoutTotal();
+
+          }
+        );
+
+      });
+
+
+    // =====================================
+    // CLOSE CHECKOUT
+    // =====================================
+
+    checkout
+      .querySelector(
+        ".checkout-close"
+      )
+      .addEventListener(
+        "click",
+        () => {
+
+          checkout.classList.remove(
+            "open"
+          );
+
+          setTimeout(() => {
+            checkout.remove();
+          }, 300);
+
+        }
+      );
+
+
+    // =====================================
+    // FORM SUBMISSION
+    // =====================================
+
+    form.addEventListener(
+      "submit",
+      event => {
+
+        event.preventDefault();
+
+
+        if (!form.checkValidity()) {
+
+          form.reportValidity();
+
+          return;
+
+        }
+
+
+        showToast(
+          "Checkout details accepted for testing."
+        );
+
+
+        setTimeout(() => {
+
+          alert(
+            "TEST MODE\n\n" +
+            "Your checkout form works!\n\n" +
+            "No personal information or payment " +
+            "has been sent or stored.\n\n" +
+            "The next stage will connect this " +
+            "to secure payment and order processing."
+          );
+
+        }, 300);
+
+      }
+    );
+
+  }
+
+
+  // =========================================
   // RENDER CART
   // =========================================
 
@@ -370,15 +1078,15 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!cartPanel) return;
 
 
-    // EMPTY BAG
-
     if (cart.length === 0) {
 
       cartPanel.innerHTML = `
 
         <div class="cart-header">
 
-          <h2>YOUR BAG</h2>
+          <h2>
+            YOUR BAG
+          </h2>
 
           <button
             class="cart-close"
@@ -410,7 +1118,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
       cartPanel
-        .querySelector(".cart-close")
+        .querySelector(
+          ".cart-close"
+        )
         .addEventListener(
           "click",
           closeCart
@@ -422,13 +1132,13 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
 
-    // ITEMS IN BAG
-
     cartPanel.innerHTML = `
 
       <div class="cart-header">
 
-        <h2>YOUR BAG</h2>
+        <h2>
+          YOUR BAG
+        </h2>
 
         <button
           class="cart-close"
@@ -442,7 +1152,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
       <div class="cart-items">
 
-        ${cart.map((item, index) => `
+        ${cart.map(
+          (item, index) => `
 
           <div class="cart-item">
 
@@ -457,492 +1168,4 @@ document.addEventListener("DOMContentLoaded", () => {
             </div>
 
 
-            <div class="cart-item-info">
-
-              <h3>
-                ${item.name}
-              </h3>
-
-              <p>
-                ${item.price}
-              </p>
-
-
-              <div class="quantity">
-
-                <button
-                  type="button"
-                  class="quantity-remove"
-                  data-index="${index}"
-                >
-                  −
-                </button>
-
-
-                <span>
-                  ${item.quantity}
-                </span>
-
-
-                <button
-                  type="button"
-                  class="quantity-add"
-                  data-index="${index}"
-                >
-                  +
-                </button>
-
-              </div>
-
-            </div>
-
-          </div>
-
-        `).join("")}
-
-      </div>
-
-
-      <div class="cart-footer">
-
-        <div class="cart-total">
-
-          <span>
-            TOTAL
-          </span>
-
-          <strong>
-            £${getTotal().toFixed(2)}
-          </strong>
-
-        </div>
-
-
-        <button
-          class="checkout-button"
-          type="button"
-        >
-          CHECKOUT
-        </button>
-
-      </div>
-
-    `;
-
-
-    // CLOSE BUTTON
-
-    cartPanel
-      .querySelector(".cart-close")
-      .addEventListener(
-        "click",
-        closeCart
-      );
-
-
-    // MINUS BUTTONS
-
-    cartPanel
-      .querySelectorAll(
-        ".quantity-remove"
-      )
-      .forEach(button => {
-
-        button.addEventListener(
-          "click",
-          () => {
-
-            removeFromCart(
-              Number(
-                button.dataset.index
-              )
-            );
-
-          }
-        );
-
-      });
-
-
-    // PLUS BUTTONS
-
-    cartPanel
-      .querySelectorAll(
-        ".quantity-add"
-      )
-      .forEach(button => {
-
-        button.addEventListener(
-          "click",
-          () => {
-
-            addOne(
-              Number(
-                button.dataset.index
-              )
-            );
-
-          }
-        );
-
-      });
-
-
-    // CHECKOUT
-
-    const checkoutButton =
-      cartPanel.querySelector(
-        ".checkout-button"
-      );
-
-
-    if (checkoutButton) {
-
-      checkoutButton.addEventListener(
-        "click",
-        () => {
-
-          showToast(
-            "Checkout is coming soon."
-          );
-
-        }
-      );
-
-    }
-
-  }
-
-
-  // =========================================
-  // RENDER CATALOGUE
-  // =========================================
-
-  function renderCatalogue() {
-
-    // Check that catalogue.js loaded
-
-    if (
-      !Array.isArray(
-        window.catalogue
-      )
-    ) {
-
-      console.error(
-        "DRISTLELET ERROR: catalogue.js did not load correctly."
-      );
-
-
-      productsEl.innerHTML = `
-
-        <div
-          style="
-            grid-column: 1 / -1;
-            text-align: center;
-            padding: 50px 20px;
-            color: #888;
-          "
-        >
-
-          <h3>
-            Catalogue loading...
-          </h3>
-
-          <p>
-            Please refresh the page.
-          </p>
-
-        </div>
-
-      `;
-
-
-      return;
-
-    }
-
-
-    const items =
-      window.catalogue;
-
-
-    console.log(
-      "DRISTLELET catalogue loaded:",
-      items
-    );
-
-
-    // If catalogue is empty
-
-    if (items.length === 0) {
-
-      productsEl.innerHTML = `
-
-        <div
-          style="
-            grid-column: 1 / -1;
-            text-align: center;
-            padding: 50px;
-          "
-        >
-
-          <h3>
-            No products available yet.
-          </h3>
-
-        </div>
-
-      `;
-
-
-      return;
-
-    }
-
-
-    // CREATE PRODUCTS
-
-    productsEl.innerHTML =
-      items.map(
-        (item, index) => `
-
-        <article
-          class="product reveal-product"
-        >
-
-          <div
-            class="product-image-wrap product-preview"
-            data-index="${index}"
-            role="button"
-            tabindex="0"
-            aria-label="Preview ${item.name}"
-          >
-
-            <img
-              src="${item.image}"
-              alt="${item.name}"
-              class="product-image"
-              loading="lazy"
-            >
-
-          </div>
-
-
-          <div class="product-info">
-
-            <h3>
-              ${item.name}
-            </h3>
-
-
-            <p>
-              ${item.description}
-            </p>
-
-
-            <strong>
-              ${item.price}
-            </strong>
-
-
-            <button
-              class="add"
-              type="button"
-              data-index="${index}"
-            >
-              ADD TO BAG
-            </button>
-
-          </div>
-
-        </article>
-
-      `
-      ).join("");
-
-
-    // =====================================
-    // ADD TO BAG BUTTONS
-    // =====================================
-
-    productsEl
-      .querySelectorAll(".add")
-      .forEach(button => {
-
-        button.addEventListener(
-          "click",
-          event => {
-
-            event.stopPropagation();
-
-
-            const index =
-              Number(
-                button.dataset.index
-              );
-
-
-            const item =
-              items[index];
-
-
-            if (item) {
-              addToCart(item);
-            }
-
-          }
-        );
-
-      });
-
-
-    // =====================================
-    // IMAGE PREVIEW
-    // =====================================
-
-    productsEl
-      .querySelectorAll(
-        ".product-preview"
-      )
-      .forEach(preview => {
-
-
-        const openPreview = () => {
-
-          const index =
-            Number(
-              preview.dataset.index
-            );
-
-
-          const item =
-            items[index];
-
-
-          if (item) {
-            createPreview(item);
-          }
-
-        };
-
-
-        preview.addEventListener(
-          "click",
-          openPreview
-        );
-
-
-        preview.addEventListener(
-          "keydown",
-          event => {
-
-            if (
-              event.key === "Enter" ||
-              event.key === " "
-            ) {
-
-              event.preventDefault();
-
-              openPreview();
-
-            }
-
-          }
-        );
-
-      });
-
-
-    // =====================================
-    // PRODUCT SCROLL ANIMATION
-    // =====================================
-
-    const revealItems =
-      productsEl.querySelectorAll(
-        ".reveal-product"
-      );
-
-
-    if (
-      "IntersectionObserver"
-      in window
-    ) {
-
-      const observer =
-        new IntersectionObserver(
-          entries => {
-
-            entries.forEach(
-              entry => {
-
-                if (
-                  entry.isIntersecting
-                ) {
-
-                  entry.target.classList.add(
-                    "product-visible"
-                  );
-
-
-                  observer.unobserve(
-                    entry.target
-                  );
-
-                }
-
-              }
-            );
-
-          },
-          {
-            threshold: 0.1
-          }
-        );
-
-
-      revealItems.forEach(
-        item => {
-          observer.observe(item);
-        }
-      );
-
-    } else {
-
-      // Fallback for older browsers
-
-      revealItems.forEach(
-        item => {
-          item.classList.add(
-            "product-visible"
-          );
-        }
-      );
-
-    }
-
-  }
-
-
-  // =========================================
-  // BAG BUTTON
-  // =========================================
-
-  if (cartButton) {
-
-    cartButton.addEventListener(
-      "click",
-      openCart
-    );
-
-  }
-
-
-  // =========================================
-  // START WEBSITE
-  // =========================================
-
-  updateCount();
-
-  renderCatalogue();
-
-});
+            <di
