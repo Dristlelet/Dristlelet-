@@ -13,7 +13,10 @@
   }
 
   function updateCount() {
-    const count = cart.reduce((total, item) => total + item.quantity, 0);
+    const count = cart.reduce(
+      (total, item) => total + item.quantity,
+      0
+    );
 
     if (countEl) {
       countEl.textContent = count;
@@ -60,7 +63,12 @@
       </button>
 
       <div class="preview-content">
-        ${item.art}
+        <img
+          src="${item.image}"
+          alt="${item.name}"
+          class="preview-image"
+        >
+
         <h2>${item.name}</h2>
         <p>${item.description}</p>
         <strong>${item.price}</strong>
@@ -73,13 +81,15 @@
       preview.classList.add("preview-open");
     });
 
-    preview.querySelector(".preview-close").addEventListener("click", () => {
-      preview.classList.remove("preview-open");
+    preview
+      .querySelector(".preview-close")
+      .addEventListener("click", () => {
+        preview.classList.remove("preview-open");
 
-      setTimeout(() => {
-        preview.remove();
-      }, 300);
-    });
+        setTimeout(() => {
+          preview.remove();
+        }, 300);
+      });
 
     preview.addEventListener("click", event => {
       if (event.target === preview) {
@@ -97,7 +107,9 @@
      ================================ */
 
   function addToCart(item) {
-    const existing = cart.find(product => product.name === item.name);
+    const existing = cart.find(
+      product => product.name === item.name
+    );
 
     if (existing) {
       existing.quantity++;
@@ -106,7 +118,7 @@
         name: item.name,
         price: item.price,
         description: item.description,
-        art: item.art,
+        image: item.image,
         quantity: 1
       });
     }
@@ -205,7 +217,10 @@
           <div class="cart-item">
 
             <div class="cart-item-art">
-              ${item.art}
+              <img
+                src="${item.image}"
+                alt="${item.name}"
+              >
             </div>
 
             <div class="cart-item-info">
@@ -299,7 +314,14 @@
           role="button"
           tabindex="0"
           aria-label="Preview ${item.name}">
-          ${item.art}
+
+          <img
+            src="${item.image}"
+            alt="${item.name}"
+            class="product-image"
+            loading="lazy"
+          >
+
         </div>
 
         <div class="product-info">
