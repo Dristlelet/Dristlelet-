@@ -924,3 +924,41 @@ html {
   }
 
 }
+/* =========================================
+   HERO IMAGE FIX
+   ========================================= */
+
+.hero-mark {
+  position: relative;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.hero-mark img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+  object-position: center;
+  border-radius: 50%;
+}
+
+/* MOBILE HERO IMAGE */
+@media (max-width: 800px) {
+
+  .hero-mark {
+    width: 65vw;
+    height: 65vw;
+    max-width: 300px;
+    max-height: 300px;
+    overflow: hidden;
+  }
+
+  .hero-mark img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+  }
+
+}
