@@ -1,80 +1,39 @@
-// =========================================
-// DRISTLELET — MAIN WEBSITE JAVASCRIPT
-// CART + CHECKOUT + DELIVERY CALCULATOR
-// =========================================
+(() => {
 
-document.addEventListener("DOMContentLoaded", () => {
+  /* =========================================
+     DRISTLELET SHOP
+     CART + CATALOGUE + CHECKOUT
+  ========================================= */
 
   const productsEl = document.getElementById("products");
   const cartButton = document.getElementById("cartButton");
   const countEl = document.getElementById("cartCount");
   const toast = document.getElementById("toast");
 
-  if (!productsEl) {
-    console.error("DRISTLELET: products area not found.");
-    return;
-  }
+  if (!productsEl) return;
 
 
-  // =========================================
-  // CART
-  // =========================================
+  /* =========================================
+     CART STORAGE
+  ========================================= */
 
-  let cart = [];
+  let cart = JSON.parse(
+    localStorage.getItem("dristleletCartItems") || "[]"
+  );
 
-  try {
-    cart = JSON.parse(
-      localStorage.getItem("dristleletCartItems") || "[]"
-    );
-
-    if (!Array.isArray(cart)) {
-      cart = [];
-    }
-
-  } catch (error) {
+  if (!Array.isArray(cart)) {
     cart = [];
   }
 
 
-  // =========================================
-  // DELIVERY OPTIONS
-  // =========================================
-
-  const deliveryOptions = {
-
-    tracked48: {
-      name: "Royal Mail Tracked 48",
-      price: 3.65,
-      description: "Aims for 2–3 working days"
-    },
-
-    tracked24: {
-      name: "Royal Mail Tracked 24",
-      price: 4.65,
-      description: "Aims for next working day"
-    },
-
-    special: {
-      name: "Royal Mail Special Delivery by 1pm",
-      price: 9.45,
-      description: "Guaranteed by 1pm next working day*"
-    }
-
-  };
-
-
-  let selectedDelivery = "tracked48";
-
-
-  // =========================================
-  // UPDATE CART COUNT
-  // =========================================
+  /* =========================================
+     CART COUNT
+  ========================================= */
 
   function updateCount() {
 
     const count = cart.reduce(
-      (total, item) =>
-        total + Number(item.quantity || 0),
+      (total, item) => total + Number(item.quantity || 0),
       0
     );
 
@@ -89,9 +48,9 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
 
-  // =========================================
-  // TOAST
-  // =========================================
+  /* =========================================
+     TOAST
+  ========================================= */
 
   function showToast(message) {
 
@@ -103,61 +62,58 @@ document.addEventListener("DOMContentLoaded", () => {
     toast.classList.add("show");
 
     setTimeout(() => {
+
       toast.classList.remove("show");
       toast.classList.add("hide");
+
     }, 1800);
   }
 
 
-  // =========================================
-  // PRODUCT PRICE
-  // =========================================
+  /* =========================================
+     PRICE HELPER
+  ========================================= */
 
-  function priceNumber(price) {
+  function getPrice(price) {
 
     return Number(
       String(price)
         .replace("£", "")
         .replace(",", "")
-        .trim()
     ) || 0;
 
   }
 
 
-  // =========================================
-  // CART TOTAL
-  // =========================================
+  /* =========================================
+     CART TOTAL
+  ========================================= */
 
-  function getCartTotal() {
+  function getTotal() {
 
-    return cart.reduce(
-      (total, item) => {
+    return cart.reduce((total, item) => {
 
-        return total +
-          priceNumber(item.price) *
-          Number(item.quantity || 0);
+      return total +
+        getPrice(item.price) *
+        Number(item.quantity || 0);
 
-      },
-      0
-    );
+    }, 0);
 
   }
 
 
-  // =========================================
-  // IMAGE PREVIEW
-  // =========================================
+  /* =========================================
+     IMAGE PREVIEW
+  ========================================= */
 
   function createPreview(item) {
 
-    const old =
+    const oldPreview =
       document.getElementById("imagePreview");
 
-    if (old) {
-      old.remove();
+    if (oldPreview) {
+      oldPreview.remove();
     }
-
 
     const preview =
       document.createElement("div");
@@ -165,12 +121,12 @@ document.addEventListener("DOMContentLoaded", () => {
     preview.id = "imagePreview";
     preview.className = "image-preview";
 
-
     preview.innerHTML = `
 
       <button
         class="preview-close"
         type="button"
+        aria-label="Close preview"
       >
         ×
       </button>
@@ -180,51 +136,42 @@ document.addEventListener("DOMContentLoaded", () => {
         <img
           src="${item.image}"
           alt="${item.name}"
-          class="preview-image product-image"
+          class="preview-image"
         >
 
         <h2>${item.name}</h2>
 
-        <p>${item.description}</p>
+        <p>
+          ${item.description}
+        </p>
 
-        <strong>${item.price}</strong>
+        <strong>
+          ${item.price}
+        </strong>
 
       </div>
-
     `;
 
-
     document.body.appendChild(preview);
-
 
     requestAnimationFrame(() => {
       preview.classList.add("preview-open");
     });
 
 
-    function closePreview() {
-
-      preview.classList.remove(
-        "preview-open"
-      );
-
-      setTimeout(() => {
-
-        if (preview.parentNode) {
-          preview.remove();
-        }
-
-      }, 300);
-
-    }
-
-
     preview
       .querySelector(".preview-close")
-      .addEventListener(
-        "click",
-        closePreview
-      );
+      .addEventListener("click", () => {
+
+        preview.classList.remove(
+          "preview-open"
+        );
+
+        setTimeout(() => {
+          preview.remove();
+        }, 300);
+
+      });
 
 
     preview.addEventListener(
@@ -232,7 +179,15 @@ document.addEventListener("DOMContentLoaded", () => {
       event => {
 
         if (event.target === preview) {
-          closePreview();
+
+          preview.classList.remove(
+            "preview-open"
+          );
+
+          setTimeout(() => {
+            preview.remove();
+          }, 300);
+
         }
 
       }
@@ -241,44 +196,33 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
 
-  // =========================================
-  // ADD TO CART
-  // =========================================
+  /* =========================================
+     ADD TO CART
+  ========================================= */
 
   function addToCart(item) {
 
-    const existing =
-      cart.find(
-        product =>
-          product.name === item.name
-      );
-
+    const existing = cart.find(
+      product => product.name === item.name
+    );
 
     if (existing) {
 
-      existing.quantity =
-        Number(existing.quantity || 0) + 1;
+      existing.quantity++;
 
     } else {
 
       cart.push({
 
-        id: item.id || item.name,
-
         name: item.name,
-
         price: item.price,
-
         description: item.description,
-
         image: item.image,
-
         quantity: 1
 
       });
 
     }
-
 
     updateCount();
 
@@ -286,30 +230,27 @@ document.addEventListener("DOMContentLoaded", () => {
       `${item.name} added to your bag.`
     );
 
-
     renderCart();
 
   }
 
 
-  // =========================================
-  // REMOVE ONE
-  // =========================================
+  /* =========================================
+     REMOVE ONE ITEM
+  ========================================= */
 
   function removeFromCart(index) {
 
     if (!cart[index]) return;
 
-
-    cart[index].quantity =
-      Number(cart[index].quantity || 0) - 1;
-
+    cart[index].quantity--;
 
     if (cart[index].quantity <= 0) {
+
       cart.splice(index, 1);
+
     }
 
-
     updateCount();
 
     renderCart();
@@ -317,35 +258,14 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
 
-  // =========================================
-  // ADD ONE
-  // =========================================
-
-  function addOne(index) {
-
-    if (!cart[index]) return;
-
-
-    cart[index].quantity =
-      Number(cart[index].quantity || 0) + 1;
-
-
-    updateCount();
-
-    renderCart();
-
-  }
-
-
-  // =========================================
-  // OPEN CART
-  // =========================================
+  /* =========================================
+     OPEN CART
+  ========================================= */
 
   function openCart() {
 
     let cartPanel =
       document.getElementById("cartPanel");
-
 
     if (!cartPanel) {
 
@@ -353,19 +273,13 @@ document.addEventListener("DOMContentLoaded", () => {
         document.createElement("aside");
 
       cartPanel.id = "cartPanel";
+      cartPanel.className = "cart-panel";
 
-      cartPanel.className =
-        "cart-panel";
-
-      document.body.appendChild(
-        cartPanel
-      );
+      document.body.appendChild(cartPanel);
 
     }
 
-
     renderCart();
-
 
     requestAnimationFrame(() => {
 
@@ -378,18 +292,16 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
 
-  // =========================================
-  // CLOSE CART
-  // =========================================
+  /* =========================================
+     CLOSE CART
+  ========================================= */
 
   function closeCart() {
 
     const cartPanel =
       document.getElementById("cartPanel");
 
-
     if (!cartPanel) return;
-
 
     cartPanel.classList.remove(
       "cart-open"
@@ -398,685 +310,19 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
 
-  // =========================================
-  // CHECKOUT STYLE
-  // =========================================
-
-  function addCheckoutStyles() {
-
-    if (
-      document.getElementById(
-        "dristleletCheckoutStyles"
-      )
-    ) {
-      return;
-    }
-
-
-    const style =
-      document.createElement("style");
-
-    style.id =
-      "dristleletCheckoutStyles";
-
-
-    style.textContent = `
-
-      .checkout-overlay {
-        position: fixed;
-        inset: 0;
-        z-index: 10000;
-        background: rgba(0,0,0,.88);
-        backdrop-filter: blur(14px);
-        overflow-y: auto;
-        padding: 20px;
-        opacity: 0;
-        transition: opacity .3s ease;
-      }
-
-      .checkout-overlay.open {
-        opacity: 1;
-      }
-
-      .checkout-box {
-        width: min(700px, 100%);
-        margin: 30px auto;
-        background: #0d0d12;
-        border: 1px solid #292936;
-        padding: 25px;
-        color: white;
-      }
-
-      .checkout-top {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        gap: 20px;
-        margin-bottom: 25px;
-      }
-
-      .checkout-top h2 {
-        margin: 0;
-      }
-
-      .checkout-close {
-        width: 44px;
-        height: 44px;
-        background: transparent;
-        color: white;
-        border: 1px solid #444451;
-        font-size: 25px;
-        cursor: pointer;
-      }
-
-      .checkout-section {
-        margin-top: 25px;
-      }
-
-      .checkout-section h3 {
-        margin-bottom: 15px;
-      }
-
-      .checkout-form {
-        display: grid;
-        gap: 14px;
-      }
-
-      .checkout-form label {
-        font-size: .75rem;
-        color: #aaaab5;
-      }
-
-      .checkout-form input {
-        width: 100%;
-        margin-top: 7px;
-        padding: 14px;
-        background: #08080c;
-        color: white;
-        border: 1px solid #30303b;
-        font-family: inherit;
-        outline: none;
-      }
-
-      .checkout-form input:focus {
-        border-color: #6b8cff;
-      }
-
-      .delivery-option {
-        display: block;
-        padding: 15px;
-        margin-bottom: 10px;
-        border: 1px solid #30303b;
-        cursor: pointer;
-        background: #08080c;
-      }
-
-      .delivery-option.selected {
-        border-color: #6b8cff;
-        box-shadow: 0 0 20px rgba(23,119,255,.12);
-      }
-
-      .delivery-option input {
-        margin-right: 10px;
-      }
-
-      .delivery-name {
-        font-weight: 800;
-      }
-
-      .delivery-description {
-        display: block;
-        color: #92929d;
-        font-size: .7rem;
-        margin-top: 7px;
-        padding-left: 25px;
-      }
-
-      .checkout-summary {
-        border-top: 1px solid #30303b;
-        margin-top: 25px;
-        padding-top: 20px;
-      }
-
-      .summary-row {
-        display: flex;
-        justify-content: space-between;
-        margin-bottom: 12px;
-        color: #aaaab5;
-      }
-
-      .summary-row.total {
-        color: white;
-        font-size: 1.1rem;
-        margin-top: 15px;
-        padding-top: 15px;
-        border-top: 1px solid #30303b;
-      }
-
-      .place-order {
-        width: 100%;
-        margin-top: 20px;
-        padding: 17px;
-        border: 0;
-        background: white;
-        color: black;
-        font-family: inherit;
-        font-weight: 800;
-        cursor: pointer;
-      }
-
-      .test-notice {
-        margin-top: 15px;
-        padding: 12px;
-        border: 1px solid #343444;
-        color: #8f8f9a;
-        font-size: .65rem;
-        line-height: 1.6;
-      }
-
-      @media (max-width: 600px) {
-
-        .checkout-overlay {
-          padding: 10px;
-        }
-
-        .checkout-box {
-          padding: 18px;
-          margin: 10px auto;
-        }
-
-      }
-
-    `;
-
-
-    document.head.appendChild(style);
-
-  }
-
-
-  // =========================================
-  // CHECKOUT
-  // =========================================
-
-  function openCheckout() {
-
-    if (cart.length === 0) {
-
-      showToast(
-        "Your bag is empty."
-      );
-
-      return;
-
-    }
-
-
-    addCheckoutStyles();
-
-
-    const old =
-      document.getElementById(
-        "checkoutOverlay"
-      );
-
-
-    if (old) {
-      old.remove();
-    }
-
-
-    const checkout =
-      document.createElement("div");
-
-    checkout.id =
-      "checkoutOverlay";
-
-    checkout.className =
-      "checkout-overlay";
-
-
-    checkout.innerHTML = `
-
-      <div class="checkout-box">
-
-        <div class="checkout-top">
-
-          <h2>
-            CHECKOUT
-          </h2>
-
-          <button
-            class="checkout-close"
-            type="button"
-          >
-            ×
-          </button>
-
-        </div>
-
-
-        <form
-          class="checkout-form"
-          id="checkoutForm"
-        >
-
-
-          <div class="checkout-section">
-
-            <h3>
-              YOUR DETAILS
-            </h3>
-
-
-            <label>
-              Full name
-
-              <input
-                type="text"
-                name="fullName"
-                autocomplete="name"
-                required
-                placeholder="Your full name"
-              >
-
-            </label>
-
-
-            <label>
-              Email address
-
-              <input
-                type="email"
-                name="email"
-                autocomplete="email"
-                required
-                placeholder="you@example.com"
-              >
-
-            </label>
-
-
-            <label>
-              Phone number
-
-              <input
-                type="tel"
-                name="phone"
-                autocomplete="tel"
-                required
-                placeholder="Your phone number"
-              >
-
-            </label>
-
-          </div>
-
-
-          <div class="checkout-section">
-
-            <h3>
-              DELIVERY ADDRESS
-            </h3>
-
-
-            <label>
-              House number and street
-
-              <input
-                type="text"
-                name="address"
-                autocomplete="street-address"
-                required
-                placeholder="House number and street"
-              >
-
-            </label>
-
-
-            <label>
-              Town / City
-
-              <input
-                type="text"
-                name="city"
-                autocomplete="address-level2"
-                required
-                placeholder="Town or city"
-              >
-
-            </label>
-
-
-            <label>
-              Postcode
-
-              <input
-                type="text"
-                name="postcode"
-                autocomplete="postal-code"
-                required
-                placeholder="Postcode"
-              >
-
-            </label>
-
-          </div>
-
-
-          <div class="checkout-section">
-
-            <h3>
-              DELIVERY METHOD
-            </h3>
-
-
-            <div id="deliveryOptions">
-
-              ${Object.entries(
-                deliveryOptions
-              ).map(
-                ([key, option]) => `
-
-                  <label
-                    class="delivery-option ${
-                      key === selectedDelivery
-                        ? "selected"
-                        : ""
-                    }"
-                    data-delivery="${key}"
-                  >
-
-                    <input
-                      type="radio"
-                      name="delivery"
-                      value="${key}"
-                      ${
-                        key === selectedDelivery
-                          ? "checked"
-                          : ""
-                      }
-                    >
-
-                    <span class="delivery-name">
-                      ${option.name}
-                    </span>
-
-                    <strong>
-                      £${option.price.toFixed(2)}
-                    </strong>
-
-                    <span
-                      class="delivery-description"
-                    >
-                      ${option.description}
-                    </span>
-
-                  </label>
-
-                `
-              ).join("")}
-
-            </div>
-
-          </div>
-
-
-          <div
-            class="checkout-summary"
-            id="checkoutSummary"
-          ></div>
-
-
-          <button
-            type="submit"
-            class="place-order"
-          >
-            CONTINUE TO PAYMENT
-          </button>
-
-
-          <div class="test-notice">
-
-            TESTING MODE — This GitHub version
-            does not send or store your customer
-            details and does not take payment.
-            We will connect secure checkout/payment
-            services before the official launch.
-
-          </div>
-
-
-        </form>
-
-      </div>
-
-    `;
-
-
-    document.body.appendChild(
-      checkout
-    );
-
-
-    requestAnimationFrame(() => {
-      checkout.classList.add("open");
-    });
-
-
-    const form =
-      checkout.querySelector(
-        "#checkoutForm"
-      );
-
-
-    const summary =
-      checkout.querySelector(
-        "#checkoutSummary"
-      );
-
-
-    // =====================================
-    // UPDATE CHECKOUT TOTAL
-    // =====================================
-
-    function updateCheckoutTotal() {
-
-      const subtotal =
-        getCartTotal();
-
-
-      const delivery =
-        deliveryOptions[
-          selectedDelivery
-        ].price;
-
-
-      const total =
-        subtotal + delivery;
-
-
-      summary.innerHTML = `
-
-        <div class="summary-row">
-
-          <span>
-            Items
-          </span>
-
-          <strong>
-            £${subtotal.toFixed(2)}
-          </strong>
-
-        </div>
-
-
-        <div class="summary-row">
-
-          <span>
-            Delivery
-          </span>
-
-          <strong>
-            £${delivery.toFixed(2)}
-          </strong>
-
-        </div>
-
-
-        <div class="summary-row total">
-
-          <span>
-            TOTAL
-          </span>
-
-          <strong>
-            £${total.toFixed(2)}
-          </strong>
-
-        </div>
-
-      `;
-
-    }
-
-
-    updateCheckoutTotal();
-
-
-    // =====================================
-    // DELIVERY SELECTION
-    // =====================================
-
-    checkout
-      .querySelectorAll(
-        ".delivery-option"
-      )
-      .forEach(option => {
-
-        option.addEventListener(
-          "click",
-          () => {
-
-            selectedDelivery =
-              option.dataset.delivery;
-
-
-            checkout
-              .querySelectorAll(
-                ".delivery-option"
-              )
-              .forEach(item => {
-
-                item.classList.remove(
-                  "selected"
-                );
-
-              });
-
-
-            option.classList.add(
-              "selected"
-            );
-
-
-            const radio =
-              option.querySelector(
-                "input"
-              );
-
-
-            radio.checked = true;
-
-
-            updateCheckoutTotal();
-
-          }
-        );
-
-      });
-
-
-    // =====================================
-    // CLOSE CHECKOUT
-    // =====================================
-
-    checkout
-      .querySelector(
-        ".checkout-close"
-      )
-      .addEventListener(
-        "click",
-        () => {
-
-          checkout.classList.remove(
-            "open"
-          );
-
-          setTimeout(() => {
-            checkout.remove();
-          }, 300);
-
-        }
-      );
-
-
-    // =====================================
-    // FORM SUBMISSION
-    // =====================================
-
-    form.addEventListener(
-      "submit",
-      event => {
-
-        event.preventDefault();
-
-
-        if (!form.checkValidity()) {
-
-          form.reportValidity();
-
-          return;
-
-        }
-
-
-        showToast(
-          "Checkout details accepted for testing."
-        );
-
-
-        setTimeout(() => {
-
-          alert(
-            "TEST MODE\n\n" +
-            "Your checkout form works!\n\n" +
-            "No personal information or payment " +
-            "has been sent or stored.\n\n" +
-            "The next stage will connect this " +
-            "to secure payment and order processing."
-          );
-
-        }, 300);
-
-      }
-    );
-
-  }
-
-
-  // =========================================
-  // RENDER CART
-  // =========================================
+  /* =========================================
+     RENDER CART
+  ========================================= */
 
   function renderCart() {
 
     const cartPanel =
       document.getElementById("cartPanel");
 
-
     if (!cartPanel) return;
 
+
+    /* EMPTY BAG */
 
     if (cart.length === 0) {
 
@@ -1084,9 +330,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         <div class="cart-header">
 
-          <h2>
-            YOUR BAG
-          </h2>
+          <h2>YOUR BAG</h2>
 
           <button
             class="cart-close"
@@ -1096,7 +340,6 @@ document.addEventListener("DOMContentLoaded", () => {
           </button>
 
         </div>
-
 
         <div class="cart-empty">
 
@@ -1116,21 +359,19 @@ document.addEventListener("DOMContentLoaded", () => {
 
       `;
 
-
       cartPanel
-        .querySelector(
-          ".cart-close"
-        )
+        .querySelector(".cart-close")
         .addEventListener(
           "click",
           closeCart
         );
 
-
       return;
 
     }
 
+
+    /* CART WITH ITEMS */
 
     cartPanel.innerHTML = `
 
@@ -1152,8 +393,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
       <div class="cart-items">
 
-        ${cart.map(
-          (item, index) => `
+        ${cart.map((item, index) => `
 
           <div class="cart-item">
 
@@ -1162,10 +402,775 @@ document.addEventListener("DOMContentLoaded", () => {
               <img
                 src="${item.image}"
                 alt="${item.name}"
-                class="product-image"
               >
 
             </div>
 
 
-            <di
+            <div class="cart-item-info">
+
+              <h3>
+                ${item.name}
+              </h3>
+
+              <p>
+                ${item.price}
+              </p>
+
+
+              <div class="quantity">
+
+                <button
+                  type="button"
+                  class="quantity-remove"
+                  data-index="${index}"
+                >
+                  −
+                </button>
+
+
+                <span>
+                  ${item.quantity}
+                </span>
+
+
+                <button
+                  type="button"
+                  class="quantity-add"
+                  data-index="${index}"
+                >
+                  +
+                </button>
+
+              </div>
+
+            </div>
+
+          </div>
+
+        `).join("")}
+
+      </div>
+
+
+      <div class="cart-footer">
+
+        <div class="cart-total">
+
+          <span>
+            TOTAL
+          </span>
+
+          <strong>
+            £${getTotal().toFixed(2)}
+          </strong>
+
+        </div>
+
+
+        <button
+          class="checkout-button"
+          type="button"
+        >
+          CHECKOUT
+        </button>
+
+      </div>
+
+    `;
+
+
+    /* CLOSE */
+
+    cartPanel
+      .querySelector(".cart-close")
+      .addEventListener(
+        "click",
+        closeCart
+      );
+
+
+    /* MINUS */
+
+    cartPanel
+      .querySelectorAll(".quantity-remove")
+      .forEach(button => {
+
+        button.addEventListener(
+          "click",
+          () => {
+
+            removeFromCart(
+              Number(button.dataset.index)
+            );
+
+          }
+        );
+
+      });
+
+
+    /* PLUS */
+
+    cartPanel
+      .querySelectorAll(".quantity-add")
+      .forEach(button => {
+
+        button.addEventListener(
+          "click",
+          () => {
+
+            const index =
+              Number(button.dataset.index);
+
+            if (cart[index]) {
+
+              cart[index].quantity++;
+
+            }
+
+            updateCount();
+
+            renderCart();
+
+          }
+        );
+
+      });
+
+
+    /* =====================================
+       CHECKOUT BUTTON
+    ===================================== */
+
+    const checkoutButton =
+      cartPanel.querySelector(
+        ".checkout-button"
+      );
+
+    if (checkoutButton) {
+
+      checkoutButton.addEventListener(
+        "click",
+        event => {
+
+          event.preventDefault();
+
+          openCheckout();
+
+        }
+      );
+
+    }
+
+  }
+
+
+  /* =========================================
+     CHECKOUT
+  ========================================= */
+
+  function openCheckout() {
+
+    if (cart.length === 0) {
+
+      showToast(
+        "Your bag is empty."
+      );
+
+      return;
+
+    }
+
+
+    /* Remove old checkout */
+
+    const oldCheckout =
+      document.getElementById(
+        "checkoutOverlay"
+      );
+
+    if (oldCheckout) {
+      oldCheckout.remove();
+    }
+
+
+    /* Create checkout */
+
+    const checkout =
+      document.createElement("div");
+
+    checkout.id =
+      "checkoutOverlay";
+
+    checkout.className =
+      "checkout-overlay";
+
+
+    /* Make absolutely sure
+       checkout sits above cart */
+
+    checkout.style.position = "fixed";
+    checkout.style.inset = "0";
+    checkout.style.zIndex = "999999";
+    checkout.style.background =
+      "rgba(3,3,8,0.98)";
+    checkout.style.overflowY =
+      "auto";
+
+
+    /* =====================================
+       CHECKOUT HTML
+    ===================================== */
+
+    checkout.innerHTML = `
+
+      <div
+        class="checkout-box"
+        style="
+          max-width:700px;
+          margin:0 auto;
+          padding:30px 20px 60px;
+        "
+      >
+
+
+        <div
+          class="checkout-header"
+          style="
+            display:flex;
+            justify-content:space-between;
+            align-items:center;
+            margin-bottom:30px;
+          "
+        >
+
+          <h1>
+            CHECKOUT
+          </h1>
+
+
+          <button
+            id="checkoutClose"
+            type="button"
+            style="
+              font-size:32px;
+              background:none;
+              border:0;
+              color:white;
+              cursor:pointer;
+            "
+          >
+            ×
+          </button>
+
+        </div>
+
+
+        <!-- CUSTOMER DETAILS -->
+
+        <section>
+
+          <p class="eyebrow">
+            YOUR DETAILS
+          </p>
+
+
+          <label>
+            Full name
+          </label>
+
+          <input
+            id="customerName"
+            type="text"
+            placeholder="Your full name"
+            autocomplete="name"
+            required
+          >
+
+
+          <label>
+            Email address
+          </label>
+
+          <input
+            id="customerEmail"
+            type="email"
+            placeholder="you@example.com"
+            autocomplete="email"
+            required
+          >
+
+
+          <label>
+            Phone number
+          </label>
+
+          <input
+            id="customerPhone"
+            type="tel"
+            placeholder="07..."
+            autocomplete="tel"
+            required
+          >
+
+        </section>
+
+
+        <!-- DELIVERY ADDRESS -->
+
+        <section>
+
+          <p class="eyebrow">
+            DELIVERY ADDRESS
+          </p>
+
+
+          <label>
+            House number / name
+          </label>
+
+          <input
+            id="addressLine1"
+            type="text"
+            placeholder="House number or name"
+            autocomplete="address-line1"
+            required
+          >
+
+
+          <label>
+            Street
+          </label>
+
+          <input
+            id="addressLine2"
+            type="text"
+            placeholder="Street"
+            autocomplete="address-line2"
+            required
+          >
+
+
+          <label>
+            Town / City
+          </label>
+
+          <input
+            id="customerCity"
+            type="text"
+            placeholder="Town or city"
+            autocomplete="address-level2"
+            required
+          >
+
+
+          <label>
+            Postcode
+          </label>
+
+          <input
+            id="customerPostcode"
+            type="text"
+            placeholder="Postcode"
+            autocomplete="postal-code"
+            required
+          >
+
+        </section>
+
+
+        <!-- DELIVERY -->
+
+        <section>
+
+          <p class="eyebrow">
+            DELIVERY METHOD
+          </p>
+
+
+          <div
+            class="delivery-options"
+          >
+
+
+            <label
+              class="delivery-option"
+            >
+
+              <input
+                type="radio"
+                name="delivery"
+                value="tracked48"
+                data-price="3.39"
+                checked
+              >
+
+              <span>
+
+                <strong>
+                  Royal Mail Tracked 48
+                </strong>
+
+                <small>
+                  2–3 working days
+                </small>
+
+              </span>
+
+              <b>
+                £3.39
+              </b>
+
+            </label>
+
+
+            <label
+              class="delivery-option"
+            >
+
+              <input
+                type="radio"
+                name="delivery"
+                value="tracked24"
+                data-price="4.25"
+              >
+
+              <span>
+
+                <strong>
+                  Royal Mail Tracked 24
+                </strong>
+
+                <small>
+                  Next working day aim
+                </small>
+
+              </span>
+
+              <b>
+                £4.25
+              </b>
+
+            </label>
+
+
+            <label
+              class="delivery-option"
+            >
+
+              <input
+                type="radio"
+                name="delivery"
+                value="special"
+                data-price="9.45"
+              >
+
+              <span>
+
+                <strong>
+                  Special Delivery
+                </strong>
+
+                <small>
+                  Next-day service
+                </small>
+
+              </span>
+
+              <b>
+                £9.45
+              </b>
+
+            </label>
+
+
+          </div>
+
+        </section>
+
+
+        <!-- ORDER SUMMARY -->
+
+        <section>
+
+          <p class="eyebrow">
+            ORDER SUMMARY
+          </p>
+
+
+          <div
+            id="checkoutItems"
+          >
+
+            ${cart.map(item => `
+
+              <div
+                style="
+                  display:flex;
+                  justify-content:space-between;
+                  gap:20px;
+                  margin-bottom:12px;
+                "
+              >
+
+                <span>
+                  ${item.name}
+                  × ${item.quantity}
+                </span>
+
+                <strong>
+                  £${(
+                    getPrice(item.price) *
+                    item.quantity
+                  ).toFixed(2)}
+                </strong>
+
+              </div>
+
+            `).join("")}
+
+          </div>
+
+
+          <hr>
+
+
+          <div
+            style="
+              display:flex;
+              justify-content:space-between;
+              margin:15px 0;
+            "
+          >
+
+            <span>
+              Items
+            </span>
+
+            <strong>
+              £${getTotal().toFixed(2)}
+            </strong>
+
+          </div>
+
+
+          <div
+            style="
+              display:flex;
+              justify-content:space-between;
+              margin:15px 0;
+            "
+          >
+
+            <span>
+              Delivery
+            </span>
+
+            <strong
+              id="checkoutDelivery"
+            >
+              £3.39
+            </strong>
+
+          </div>
+
+
+          <div
+            style="
+              display:flex;
+              justify-content:space-between;
+              font-size:22px;
+              margin-top:20px;
+            "
+          >
+
+            <strong>
+              TOTAL
+            </strong>
+
+            <strong
+              id="checkoutGrandTotal"
+            >
+              £${(
+                getTotal() + 3.39
+              ).toFixed(2)}
+            </strong>
+
+          </div>
+
+        </section>
+
+
+        <!-- CONTINUE -->
+
+        <button
+          id="continueToPayment"
+          type="button"
+          class="checkout-button"
+          style="
+            width:100%;
+            margin-top:30px;
+          "
+        >
+          CONTINUE TO PAYMENT
+        </button>
+
+
+        <p
+          style="
+            text-align:center;
+            opacity:.6;
+            margin-top:20px;
+            font-size:13px;
+          "
+        >
+          Payment will be connected later.
+        </p>
+
+
+      </div>
+
+    `;
+
+
+    document.body.appendChild(
+      checkout
+    );
+
+
+    /* =====================================
+       CLOSE CHECKOUT
+    ===================================== */
+
+    document
+      .getElementById("checkoutClose")
+      .addEventListener(
+        "click",
+        () => {
+
+          checkout.remove();
+
+        }
+      );
+
+
+    /* =====================================
+       DELIVERY CALCULATION
+    ===================================== */
+
+    const deliveryInputs =
+      checkout.querySelectorAll(
+        'input[name="delivery"]'
+      );
+
+    const deliveryOutput =
+      checkout.querySelector(
+        "#checkoutDelivery"
+      );
+
+    const grandTotalOutput =
+      checkout.querySelector(
+        "#checkoutGrandTotal"
+      );
+
+
+    function updateDelivery() {
+
+      const selected =
+        checkout.querySelector(
+          'input[name="delivery"]:checked'
+        );
+
+      if (!selected) return;
+
+      const deliveryPrice =
+        Number(
+          selected.dataset.price
+        );
+
+
+      deliveryOutput.textContent =
+        `£${deliveryPrice.toFixed(2)}`;
+
+
+      grandTotalOutput.textContent =
+        `£${(
+          getTotal() +
+          deliveryPrice
+        ).toFixed(2)}`;
+
+    }
+
+
+    deliveryInputs.forEach(input => {
+
+      input.addEventListener(
+        "change",
+        updateDelivery
+      );
+
+    });
+
+
+    updateDelivery();
+
+
+    /* =====================================
+       CONTINUE TO PAYMENT
+    ===================================== */
+
+    document
+      .getElementById(
+        "continueToPayment"
+      )
+      .addEventListener(
+        "click",
+        () => {
+
+          const name =
+            document
+              .getElementById(
+                "customerName"
+              )
+              .value.trim();
+
+          const email =
+            document
+              .getElementById(
+                "customerEmail"
+              )
+              .value.trim();
+
+          const phone =
+            document
+              .getElementById(
+                "customerPhone"
+              )
+              .value.trim();
+
+          const line1 =
+            document
+              .getElementById(
+                "addressLine1"
+              )
+              .value.trim();
+
+          const line2 =
+            document
+              .getElementById(
+                "addressLine2"
+              )
+              .value.trim();
+
+          const city =
+            document
+              .getElementById(
+                "customerCity"
+              )
+              .value.trim();
+
+          const postcode =
+            document
+              .getElementById(
+         
