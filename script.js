@@ -81,10 +81,21 @@
 
   function saveCart() {
 
-    localStorage.setItem(
-      "dristleletCartItems",
-      JSON.stringify(cart)
-    );
+    try {
+
+      localStorage.setItem(
+        "dristleletCartItems",
+        JSON.stringify(cart)
+      );
+
+    } catch (error) {
+
+      console.error(
+        "DRISTLELET: Could not save cart.",
+        error
+      );
+
+    }
 
   }
 
@@ -217,21 +228,28 @@
     });
 
 
+    const closePreview = () => {
+
+      preview.classList.remove(
+        "preview-open"
+      );
+
+      setTimeout(() => {
+
+        if (preview.parentNode) {
+          preview.remove();
+        }
+
+      }, 300);
+
+    };
+
+
     preview
       .querySelector(".preview-close")
       .addEventListener(
         "click",
-        () => {
-
-          preview.classList.remove(
-            "preview-open"
-          );
-
-          setTimeout(() => {
-            preview.remove();
-          }, 300);
-
-        }
+        closePreview
       );
 
 
@@ -240,15 +258,7 @@
       event => {
 
         if (event.target === preview) {
-
-          preview.classList.remove(
-            "preview-open"
-          );
-
-          setTimeout(() => {
-            preview.remove();
-          }, 300);
-
+          closePreview();
         }
 
       }
@@ -279,10 +289,16 @@
 
       cart.push({
 
+        id: item.id || item.name,
+
         name: item.name,
+
         price: item.price,
+
         description: item.description,
+
         image: item.image,
+
         quantity: 1
 
       });
@@ -322,6 +338,7 @@
 
 
     updateCount();
+
     renderCart();
 
   }
@@ -341,6 +358,7 @@
 
 
     updateCount();
+
     renderCart();
 
   }
@@ -437,6 +455,7 @@
 
         </div>
 
+
         <div class="cart-empty">
 
           <div class="cart-empty-icon">
@@ -469,13 +488,15 @@
     }
 
 
-    /* CART ITEMS */
+    /* CART WITH ITEMS */
 
     cartPanel.innerHTML = `
 
       <div class="cart-header">
 
-        <h2>YOUR BAG</h2>
+        <h2>
+          YOUR BAG
+        </h2>
 
         <button
           class="cart-close"
@@ -597,9 +618,7 @@
           () => {
 
             removeFromCart(
-              Number(
-                button.dataset.index
-              )
+              Number(button.dataset.index)
             );
 
           }
@@ -619,9 +638,7 @@
           () => {
 
             addOne(
-              Number(
-                button.dataset.index
-              )
+              Number(button.dataset.index)
             );
 
           }
@@ -695,20 +712,13 @@
       "checkout-overlay";
 
 
-    checkout.style.position =
-      "fixed";
+    /* FORCE CHECKOUT ABOVE EVERYTHING */
 
-    checkout.style.inset =
-      "0";
-
-    checkout.style.zIndex =
-      "999999";
-
-    checkout.style.background =
-      "rgba(3,3,8,0.98)";
-
-    checkout.style.overflowY =
-      "auto";
+    checkout.style.position = "fixed";
+    checkout.style.inset = "0";
+    checkout.style.zIndex = "999999";
+    checkout.style.background = "rgba(3,3,8,0.98)";
+    checkout.style.overflowY = "auto";
 
 
     checkout.innerHTML = `
@@ -721,6 +731,7 @@
           padding:30px 20px 60px;
         "
       >
+
 
         <div
           class="checkout-header"
@@ -735,6 +746,7 @@
           <h1>
             CHECKOUT
           </h1>
+
 
           <button
             id="checkoutClose"
@@ -753,7 +765,7 @@
         </div>
 
 
-        <!-- CUSTOMER -->
+        <!-- CUSTOMER DETAILS -->
 
         <section>
 
@@ -800,7 +812,7 @@
         </section>
 
 
-        <!-- ADDRESS -->
+        <!-- DELIVERY ADDRESS -->
 
         <section>
 
@@ -859,7 +871,7 @@
         </section>
 
 
-        <!-- DELIVERY -->
+        <!-- DELIVERY METHOD -->
 
         <section>
 
@@ -961,7 +973,7 @@
         </section>
 
 
-        <!-- ORDER -->
+        <!-- ORDER SUMMARY -->
 
         <section>
 
@@ -991,7 +1003,7 @@
                 <strong>
                   £${(
                     getPrice(item.price) *
-                    Number(item.quantity)
+                    Number(item.quantity || 0)
                   ).toFixed(2)}
                 </strong>
 
@@ -1067,6 +1079,8 @@
         </section>
 
 
+        <!-- CONTINUE -->
+
         <button
           id="continueToPayment"
           type="button"
@@ -1103,11 +1117,11 @@
 
 
     /* =====================================
-       CLOSE
+       CLOSE CHECKOUT
     ===================================== */
 
-    document
-      .getElementById("checkoutClose")
+    checkout
+      .querySelector("#checkoutClose")
       .addEventListener(
         "click",
         () => {
@@ -1189,38 +1203,28 @@
        CONTINUE TO PAYMENT
     ===================================== */
 
-    document
-      .getElementById(
-        "continueToPayment"
-      )
+    checkout
+      .querySelector("#continueToPayment")
       .addEventListener(
         "click",
         () => {
 
+          /* CUSTOMER DETAILS */
+
           const name =
-            document
-              .getElementById(
-                "customerName"
-              )
-              .value.trim();
+            checkout
+              .querySelector("#customerName")
+              .value
+              .trim();
 
 
           const email =
-            document
-              .getElementById(
-                "customerEmail"
-              )
-              .value.trim();
+            checkout
+              .querySelector("#customerEmail")
+              .value
+              .trim();
 
 
           const phone =
-            document
-              .getElementById(
-                "customerPhone"
-              )
-              .value.trim();
-
-
-          const line1 =
-            document
-              .getElementById
+            checkout
+              .querySelector("#customerPhone"
