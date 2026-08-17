@@ -1,1 +1,62 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>DRISTLELET Catalogue Manager</title><link rel="stylesheet" href="style.css"></head><body><main class="section"><p class="eyebrow">DRISTLELET</p><h1 style="font-size:clamp(2.5rem,8vw,6rem)">CATALOGUE<br><span style="background:linear-gradient(90deg,#fff,#6ba9ff,#c46cff);-webkit-background-clip:text;color:transparent">MANAGER.</span></h1><p style="color:#a4a4ad;line-height:1.8;max-width:650px">The current catalogue uses embedded product images so the main website does not depend on a separate images folder. To change products, edit <strong>catalogue.js</strong>.</p><a class="button" href="index.html">BACK TO STORE</a></main></body></html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dristlelet Catalogue Manager</title>
+<link rel="stylesheet" href="style.css">
+<style>
+body { padding: 30px 5%; }
+.manager { max-width: 900px; margin: auto; }
+.row { display:grid; gap:10px; margin:18px 0; padding:18px; border:1px solid #20202a; background:#0d0d12; }
+input, textarea { width:100%; padding:12px; background:#050507; color:white; border:1px solid #444451; font:inherit; }
+.manager button { margin-right:8px; }
+.note { color:#a4a4ad; line-height:1.6; }
+</style>
+</head>
+<body>
+<div class="manager">
+<p class="eyebrow">DRISTLELET</p>
+<h1 style="font-size:clamp(2.2rem,7vw,5rem)">CATALOGUE</h1>
+<p class="note">This helper lets you preview/edit catalogue data in your browser. For the live GitHub site, the final catalogue changes still need to be committed to <code>catalogue.js</code>.</p>
+<div id="manager"></div>
+<button class="button" id="add">+ ADD PRODUCT</button>
+<button class="button" id="save">SAVE LOCAL PREVIEW</button>
+<p id="status" class="note"></p>
+</div>
+<script src="catalogue.js"></script>
+<script>
+let items = JSON.parse(localStorage.getItem("dristleletCatalogue") || "null") || catalogue.map(x => ({...x}));
+const manager = document.getElementById("manager");
+function render() {
+  manager.innerHTML = "";
+  items.forEach((p,i) => {
+    const row = document.createElement("div");
+    row.className = "row";
+    ["name","price","image","description"].forEach(key => {
+      const el = key === "description" ? document.createElement("textarea") : document.createElement("input");
+      el.value = p[key] || "";
+      el.placeholder = key;
+      el.oninput = e => p[key] = e.target.value;
+      row.appendChild(el);
+    });
+    const remove = document.createElement("button");
+    remove.className = "add";
+    remove.textContent = "REMOVE";
+    remove.onclick = () => { items.splice(i,1); render(); };
+    row.appendChild(remove);
+    manager.appendChild(row);
+  });
+}
+document.getElementById("add").onclick = () => {
+  items.push({name:"New Hoodie", price:"£55", image:"images/", description:""});
+  render();
+};
+document.getElementById("save").onclick = () => {
+  localStorage.setItem("dristleletCatalogue", JSON.stringify(items));
+  document.getElementById("status").textContent = "Saved to this browser. To publish changes, update catalogue.js in GitHub.";
+};
+render();
+</script>
+</body>
+</html>
