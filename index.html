@@ -2,8 +2,13 @@
 <html lang="en">
 
 <head>
+
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  >
 
   <meta
     name="description"
@@ -12,14 +17,16 @@
 
   <title>DRISTLELET — Streetwear</title>
 
-  <link rel="stylesheet" href="style.css?v=4">
+  <link rel="stylesheet" href="style.css?v=5">
+
 </head>
+
 
 <body>
 
-  <!-- =========================
+  <!-- =================================
        NAVIGATION
-  ========================== -->
+  ================================== -->
 
   <header class="nav">
 
@@ -30,6 +37,7 @@
     >
       DRISTLELET
     </a>
+
 
     <nav aria-label="Main navigation">
 
@@ -44,6 +52,7 @@
       <button
         id="cartButton"
         type="button"
+        aria-label="Open shopping bag"
       >
         Bag <span id="cartCount">0</span>
       </button>
@@ -53,18 +62,20 @@
   </header>
 
 
-  <!-- =========================
-       MAIN CONTENT
-  ========================== -->
+
+  <!-- =================================
+       MAIN
+  ================================== -->
 
   <main id="top">
 
 
-    <!-- =========================
-         HERO SECTION
-    ========================== -->
+    <!-- =================================
+         HERO
+    ================================== -->
 
     <section class="hero">
+
 
       <div class="hero-copy">
 
@@ -72,15 +83,24 @@
           NEW COLLECTION
         </p>
 
+
         <h1>
+
           BUILT<br>
-          <span>DIFFERENT.</span>
+
+          <span>
+            DIFFERENT.
+          </span>
+
         </h1>
 
+
         <p>
-          Dark streetwear. Electric energy.
+          Dark streetwear.
+          Electric energy.
           Designed to stand out.
         </p>
+
 
         <a
           class="button"
@@ -90,6 +110,7 @@
         </a>
 
       </div>
+
 
 
       <!-- HERO IMAGE -->
@@ -103,23 +124,27 @@
 
       </div>
 
+
     </section>
 
 
-    <!-- =========================
-         SHOP SECTION
-    ========================== -->
+
+    <!-- =================================
+         SHOP
+    ================================== -->
 
     <section
       id="shop"
       class="section"
     >
 
+
       <div class="section-heading">
 
         <p class="eyebrow">
           THE DROP
         </p>
+
 
         <h2>
           Featured pieces
@@ -128,54 +153,72 @@
       </div>
 
 
-      <!-- Products are inserted here
-           by catalogue.js -->
+
+      <!--
+        catalogue.js automatically
+        puts all products here.
+      -->
 
       <div
         class="products"
         id="products"
       ></div>
 
+
     </section>
 
 
-    <!-- =========================
-         ABOUT SECTION
-    ========================== -->
+
+    <!-- =================================
+         ABOUT
+    ================================== -->
 
     <section
       id="about"
       class="about"
     >
 
+
       <p class="eyebrow">
         THE BRAND
       </p>
 
+
       <h2>
+
         DRISTLELET ISN'T JUST A NAME.<br>
+
         IT'S A STATEMENT.
+
       </h2>
 
+
       <p>
-        Original graphics, oversized silhouettes
+
+        Original graphics,
+        oversized silhouettes
         and a futuristic streetwear identity.
+
       </p>
 
+
     </section>
+
 
   </main>
 
 
-  <!-- =========================
+
+  <!-- =================================
        FOOTER
-  ========================== -->
+  ================================== -->
 
   <footer>
 
     <span>
       © 2026 DRISTLELET
     </span>
+
 
     <span>
       BUILT DIFFERENT.
@@ -184,9 +227,10 @@
   </footer>
 
 
-  <!-- =========================
-       TOAST MESSAGE
-  ========================== -->
+
+  <!-- =================================
+       TOAST
+  ================================== -->
 
   <div
     id="toast"
@@ -198,17 +242,27 @@
   </div>
 
 
-  <!-- =========================
+
+  <!-- =================================
        JAVASCRIPT
-  ========================== -->
+  ================================== -->
 
-  <!-- Product catalogue -->
+  <!--
+    IMPORTANT:
+    catalogue.js MUST load first.
+  -->
 
-  <script src="catalogue.js?v=4"></script>
+  <script src="catalogue.js?v=5"></script>
 
-  <!-- Cart / website functionality -->
 
-  <script src="script.js?v=4"></script>
+  <!--
+    script.js loads AFTER catalogue.js
+    and controls the cart, previews
+    and checkout.
+  -->
+
+  <script src="script.js?v=5"></script>
+
 
 </body>
 
