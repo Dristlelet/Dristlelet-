@@ -1,8 +1,8 @@
 (() => {
 
   /* =========================================
-     DRISTLELET SHOP
-     CART + CATALOGUE + CHECKOUT
+     DRISTLELET
+     CATALOGUE + CART + CHECKOUT
   ========================================= */
 
   const productsEl = document.getElementById("products");
@@ -10,19 +10,82 @@
   const countEl = document.getElementById("cartCount");
   const toast = document.getElementById("toast");
 
-  if (!productsEl) return;
+  if (!productsEl) {
+    console.error("DRISTLELET: #products was not found.");
+    return;
+  }
+
+
+  /* =========================================
+     CATALOGUE
+  ========================================= */
+
+  const items = Array.isArray(window.catalogue)
+    ? window.catalogue
+    : [];
+
+  if (!Array.isArray(window.catalogue)) {
+    console.error(
+      "DRISTLELET: catalogue.js did not load correctly."
+    );
+  }
 
 
   /* =========================================
      CART STORAGE
   ========================================= */
 
-  let cart = JSON.parse(
-    localStorage.getItem("dristleletCartItems") || "[]"
-  );
+  let cart = [];
 
-  if (!Array.isArray(cart)) {
+  try {
+
+    cart = JSON.parse(
+      localStorage.getItem("dristleletCartItems") || "[]"
+    );
+
+    if (!Array.isArray(cart)) {
+      cart = [];
+    }
+
+  } catch (error) {
+
+    console.error(
+      "DRISTLELET: Could not load cart.",
+      error
+    );
+
     cart = [];
+
+  }
+
+
+  /* =========================================
+     PRICE HELPER
+  ========================================= */
+
+  function getPrice(price) {
+
+    return Number(
+      String(price)
+        .replace("£", "")
+        .replace(",", "")
+        .trim()
+    ) || 0;
+
+  }
+
+
+  /* =========================================
+     SAVE CART
+  ========================================= */
+
+  function saveCart() {
+
+    localStorage.setItem(
+      "dristleletCartItems",
+      JSON.stringify(cart)
+    );
+
   }
 
 
@@ -33,7 +96,8 @@
   function updateCount() {
 
     const count = cart.reduce(
-      (total, item) => total + Number(item.quantity || 0),
+      (total, item) =>
+        total + Number(item.quantity || 0),
       0
     );
 
@@ -41,10 +105,28 @@
       countEl.textContent = count;
     }
 
-    localStorage.setItem(
-      "dristleletCartItems",
-      JSON.stringify(cart)
+    saveCart();
+
+  }
+
+
+  /* =========================================
+     CART TOTAL
+  ========================================= */
+
+  function getTotal() {
+
+    return cart.reduce(
+      (total, item) => {
+
+        return total +
+          getPrice(item.price) *
+          Number(item.quantity || 0);
+
+      },
+      0
     );
+
   }
 
 
@@ -67,37 +149,6 @@
       toast.classList.add("hide");
 
     }, 1800);
-  }
-
-
-  /* =========================================
-     PRICE HELPER
-  ========================================= */
-
-  function getPrice(price) {
-
-    return Number(
-      String(price)
-        .replace("£", "")
-        .replace(",", "")
-    ) || 0;
-
-  }
-
-
-  /* =========================================
-     CART TOTAL
-  ========================================= */
-
-  function getTotal() {
-
-    return cart.reduce((total, item) => {
-
-      return total +
-        getPrice(item.price) *
-        Number(item.quantity || 0);
-
-    }, 0);
 
   }
 
@@ -115,11 +166,13 @@
       oldPreview.remove();
     }
 
+
     const preview =
       document.createElement("div");
 
     preview.id = "imagePreview";
     preview.className = "image-preview";
+
 
     preview.innerHTML = `
 
@@ -141,37 +194,45 @@
 
         <h2>${item.name}</h2>
 
-        <p>
-          ${item.description}
-        </p>
+        <p>${item.description}</p>
 
         <strong>
           ${item.price}
         </strong>
 
       </div>
+
     `;
+
 
     document.body.appendChild(preview);
 
+
     requestAnimationFrame(() => {
-      preview.classList.add("preview-open");
+
+      preview.classList.add(
+        "preview-open"
+      );
+
     });
 
 
     preview
       .querySelector(".preview-close")
-      .addEventListener("click", () => {
+      .addEventListener(
+        "click",
+        () => {
 
-        preview.classList.remove(
-          "preview-open"
-        );
+          preview.classList.remove(
+            "preview-open"
+          );
 
-        setTimeout(() => {
-          preview.remove();
-        }, 300);
+          setTimeout(() => {
+            preview.remove();
+          }, 300);
 
-      });
+        }
+      );
 
 
     preview.addEventListener(
@@ -202,13 +263,17 @@
 
   function addToCart(item) {
 
-    const existing = cart.find(
-      product => product.name === item.name
-    );
+    const existing =
+      cart.find(
+        product =>
+          product.name === item.name
+      );
+
 
     if (existing) {
 
-      existing.quantity++;
+      existing.quantity =
+        Number(existing.quantity || 0) + 1;
 
     } else {
 
@@ -224,6 +289,7 @@
 
     }
 
+
     updateCount();
 
     showToast(
@@ -236,14 +302,17 @@
 
 
   /* =========================================
-     REMOVE ONE ITEM
+     REMOVE ONE
   ========================================= */
 
   function removeFromCart(index) {
 
     if (!cart[index]) return;
 
-    cart[index].quantity--;
+
+    cart[index].quantity =
+      Number(cart[index].quantity || 0) - 1;
+
 
     if (cart[index].quantity <= 0) {
 
@@ -251,8 +320,27 @@
 
     }
 
-    updateCount();
 
+    updateCount();
+    renderCart();
+
+  }
+
+
+  /* =========================================
+     ADD ONE
+  ========================================= */
+
+  function addOne(index) {
+
+    if (!cart[index]) return;
+
+
+    cart[index].quantity =
+      Number(cart[index].quantity || 0) + 1;
+
+
+    updateCount();
     renderCart();
 
   }
@@ -267,6 +355,7 @@
     let cartPanel =
       document.getElementById("cartPanel");
 
+
     if (!cartPanel) {
 
       cartPanel =
@@ -275,11 +364,15 @@
       cartPanel.id = "cartPanel";
       cartPanel.className = "cart-panel";
 
-      document.body.appendChild(cartPanel);
+      document.body.appendChild(
+        cartPanel
+      );
 
     }
 
+
     renderCart();
+
 
     requestAnimationFrame(() => {
 
@@ -301,7 +394,9 @@
     const cartPanel =
       document.getElementById("cartPanel");
 
+
     if (!cartPanel) return;
+
 
     cartPanel.classList.remove(
       "cart-open"
@@ -318,6 +413,7 @@
 
     const cartPanel =
       document.getElementById("cartPanel");
+
 
     if (!cartPanel) return;
 
@@ -359,6 +455,7 @@
 
       `;
 
+
       cartPanel
         .querySelector(".cart-close")
         .addEventListener(
@@ -366,20 +463,19 @@
           closeCart
         );
 
+
       return;
 
     }
 
 
-    /* CART WITH ITEMS */
+    /* CART ITEMS */
 
     cartPanel.innerHTML = `
 
       <div class="cart-header">
 
-        <h2>
-          YOUR BAG
-        </h2>
+        <h2>YOUR BAG</h2>
 
         <button
           class="cart-close"
@@ -501,7 +597,9 @@
           () => {
 
             removeFromCart(
-              Number(button.dataset.index)
+              Number(
+                button.dataset.index
+              )
             );
 
           }
@@ -520,18 +618,11 @@
           "click",
           () => {
 
-            const index =
-              Number(button.dataset.index);
-
-            if (cart[index]) {
-
-              cart[index].quantity++;
-
-            }
-
-            updateCount();
-
-            renderCart();
+            addOne(
+              Number(
+                button.dataset.index
+              )
+            );
 
           }
         );
@@ -539,14 +630,13 @@
       });
 
 
-    /* =====================================
-       CHECKOUT BUTTON
-    ===================================== */
+    /* CHECKOUT */
 
     const checkoutButton =
       cartPanel.querySelector(
         ".checkout-button"
       );
+
 
     if (checkoutButton) {
 
@@ -583,22 +673,20 @@
     }
 
 
-    /* Remove old checkout */
-
     const oldCheckout =
       document.getElementById(
         "checkoutOverlay"
       );
+
 
     if (oldCheckout) {
       oldCheckout.remove();
     }
 
 
-    /* Create checkout */
-
     const checkout =
       document.createElement("div");
+
 
     checkout.id =
       "checkoutOverlay";
@@ -607,21 +695,21 @@
       "checkout-overlay";
 
 
-    /* Make absolutely sure
-       checkout sits above cart */
+    checkout.style.position =
+      "fixed";
 
-    checkout.style.position = "fixed";
-    checkout.style.inset = "0";
-    checkout.style.zIndex = "999999";
+    checkout.style.inset =
+      "0";
+
+    checkout.style.zIndex =
+      "999999";
+
     checkout.style.background =
       "rgba(3,3,8,0.98)";
+
     checkout.style.overflowY =
       "auto";
 
-
-    /* =====================================
-       CHECKOUT HTML
-    ===================================== */
 
     checkout.innerHTML = `
 
@@ -633,7 +721,6 @@
           padding:30px 20px 60px;
         "
       >
-
 
         <div
           class="checkout-header"
@@ -648,7 +735,6 @@
           <h1>
             CHECKOUT
           </h1>
-
 
           <button
             id="checkoutClose"
@@ -667,7 +753,7 @@
         </div>
 
 
-        <!-- CUSTOMER DETAILS -->
+        <!-- CUSTOMER -->
 
         <section>
 
@@ -685,7 +771,6 @@
             type="text"
             placeholder="Your full name"
             autocomplete="name"
-            required
           >
 
 
@@ -698,7 +783,6 @@
             type="email"
             placeholder="you@example.com"
             autocomplete="email"
-            required
           >
 
 
@@ -711,13 +795,12 @@
             type="tel"
             placeholder="07..."
             autocomplete="tel"
-            required
           >
 
         </section>
 
 
-        <!-- DELIVERY ADDRESS -->
+        <!-- ADDRESS -->
 
         <section>
 
@@ -735,7 +818,6 @@
             type="text"
             placeholder="House number or name"
             autocomplete="address-line1"
-            required
           >
 
 
@@ -748,7 +830,6 @@
             type="text"
             placeholder="Street"
             autocomplete="address-line2"
-            required
           >
 
 
@@ -761,7 +842,6 @@
             type="text"
             placeholder="Town or city"
             autocomplete="address-level2"
-            required
           >
 
 
@@ -774,7 +854,6 @@
             type="text"
             placeholder="Postcode"
             autocomplete="postal-code"
-            required
           >
 
         </section>
@@ -789,14 +868,10 @@
           </p>
 
 
-          <div
-            class="delivery-options"
-          >
+          <div class="delivery-options">
 
 
-            <label
-              class="delivery-option"
-            >
+            <label class="delivery-option">
 
               <input
                 type="radio"
@@ -825,9 +900,7 @@
             </label>
 
 
-            <label
-              class="delivery-option"
-            >
+            <label class="delivery-option">
 
               <input
                 type="radio"
@@ -855,9 +928,7 @@
             </label>
 
 
-            <label
-              class="delivery-option"
-            >
+            <label class="delivery-option">
 
               <input
                 type="radio"
@@ -869,7 +940,7 @@
               <span>
 
                 <strong>
-                  Special Delivery
+                  Royal Mail Special Delivery
                 </strong>
 
                 <small>
@@ -890,7 +961,7 @@
         </section>
 
 
-        <!-- ORDER SUMMARY -->
+        <!-- ORDER -->
 
         <section>
 
@@ -899,9 +970,7 @@
           </p>
 
 
-          <div
-            id="checkoutItems"
-          >
+          <div id="checkoutItems">
 
             ${cart.map(item => `
 
@@ -922,7 +991,7 @@
                 <strong>
                   £${(
                     getPrice(item.price) *
-                    item.quantity
+                    Number(item.quantity)
                   ).toFixed(2)}
                 </strong>
 
@@ -967,9 +1036,7 @@
               Delivery
             </span>
 
-            <strong
-              id="checkoutDelivery"
-            >
+            <strong id="checkoutDelivery">
               £3.39
             </strong>
 
@@ -989,9 +1056,7 @@
               TOTAL
             </strong>
 
-            <strong
-              id="checkoutGrandTotal"
-            >
+            <strong id="checkoutGrandTotal">
               £${(
                 getTotal() + 3.39
               ).toFixed(2)}
@@ -1001,8 +1066,6 @@
 
         </section>
 
-
-        <!-- CONTINUE -->
 
         <button
           id="continueToPayment"
@@ -1040,7 +1103,7 @@
 
 
     /* =====================================
-       CLOSE CHECKOUT
+       CLOSE
     ===================================== */
 
     document
@@ -1064,10 +1127,12 @@
         'input[name="delivery"]'
       );
 
+
     const deliveryOutput =
       checkout.querySelector(
         "#checkoutDelivery"
       );
+
 
     const grandTotalOutput =
       checkout.querySelector(
@@ -1082,7 +1147,9 @@
           'input[name="delivery"]:checked'
         );
 
+
       if (!selected) return;
+
 
       const deliveryPrice =
         Number(
@@ -1103,14 +1170,16 @@
     }
 
 
-    deliveryInputs.forEach(input => {
+    deliveryInputs.forEach(
+      input => {
 
-      input.addEventListener(
-        "change",
-        updateDelivery
-      );
+        input.addEventListener(
+          "change",
+          updateDelivery
+        );
 
-    });
+      }
+    );
 
 
     updateDelivery();
@@ -1135,12 +1204,14 @@
               )
               .value.trim();
 
+
           const email =
             document
               .getElementById(
                 "customerEmail"
               )
               .value.trim();
+
 
           const phone =
             document
@@ -1149,28 +1220,7 @@
               )
               .value.trim();
 
+
           const line1 =
             document
-              .getElementById(
-                "addressLine1"
-              )
-              .value.trim();
-
-          const line2 =
-            document
-              .getElementById(
-                "addressLine2"
-              )
-              .value.trim();
-
-          const city =
-            document
-              .getElementById(
-                "customerCity"
-              )
-              .value.trim();
-
-          const postcode =
-            document
-              .getElementById(
-         
+              .getElementById
