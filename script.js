@@ -1,3 +1,5 @@
+console.log("DRISTLELET SCRIPT LOADED");
+console.log("CATALOGUE:", window.catalogue);
 (() => {
 
   /* =========================================
